@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Team Editor — EST Financial</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy: #080f1e;
+      --red: #e5291f;
+      --white: #ffffff;
+      --gray: #f5f5f7;
+      --gray-mid: #e0e0e0;
+      --text: #1a1a2e;
+      --text-muted: #666;
+      --radius: 10px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--gray);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* LOGIN SCREEN */
+    #login-screen {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; padding: 24px;
+    }
+    .login-box {
+      background: var(--white); border-radius: 16px;
+      padding: 48px 40px; width: 100%; max-width: 400px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.12);
+      text-align: center;
+    }
+    .login-box img { height: 36px; margin-bottom: 24px; }
+    .login-box h1 { font-size: 1.4rem; margin-bottom: 6px; color: var(--navy); }
+    .login-box p { color: var(--text-muted); font-size: 14px; margin-bottom: 32px; }
+    .login-box input {
+      width: 100%; padding: 12px 16px; border: 1.5px solid var(--gray-mid);
+      border-radius: 8px; font-size: 15px; margin-bottom: 12px;
+      outline: none; transition: border-color 0.2s;
+    }
+    .login-box input:focus { border-color: var(--red); }
+    .login-box .btn-login {
+      width: 100%; padding: 13px; background: var(--red); color: var(--white);
+      border: none; border-radius: 8px; font-size: 15px; font-weight: 600;
+      cursor: pointer; transition: opacity 0.2s;
+    }
+    .login-box .btn-login:hover { opacity: 0.88; }
+    .login-error { color: var(--red); font-size: 13px; margin-top: 8px; display: none; }
+
+    /* APP */
+    #app { display: none; }
+
+    header {
+      background: var(--navy); padding: 0 32px;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 60px; position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+    }
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    .header-left img { height: 28px; }
+    .header-left span { color: rgba(255,255,255,0.5); font-size: 13px; }
+    .header-right { display: flex; align-items: center; gap: 12px; }
+    .btn-logout {
+      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.7); padding: 7px 16px; border-radius: 6px;
+      font-size: 13px; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-logout:hover { background: rgba(255,255,255,0.15); color: var(--white); }
+
+    .main { max-width: 1000px; margin: 0 auto; padding: 32px 24px; }
+
+    .page-title { font-size: 1.5rem; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
+    .page-sub { color: var(--text-muted); font-size: 14px; margin-bottom: 28px; }
+
+    /* STATUS BAR */
+    #status-bar {
+      padding: 12px 16px; border-radius: 8px; font-size: 14px;
+      margin-bottom: 20px; display: none; align-items: center; gap: 10px;
+    }
+    #status-bar.success { background: #e8f5e9; color: #2e7d32; display: flex; }
+    #status-bar.error   { background: #fdecea; color: #c62828; display: flex; }
+    #status-bar.loading { background: #e3f2fd; color: #1565c0; display: flex; }
+
+    /* TOOLBAR */
+    .toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 20px; gap: 12px; flex-wrap: wrap;
+    }
+    .btn-add {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--red); color: var(--white);
+      border: none; border-radius: 8px; padding: 10px 20px;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn-add:hover { opacity: 0.88; }
+    .btn-save {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--navy); color: var(--white);
+      border: none; border-radius: 8px; padding: 10px 20px;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn-save:hover { opacity: 0.82; }
+    .btn-save:disabled { opacity: 0.4; cursor: not-allowed; }
+    .unsaved-badge {
+      background: #fff3cd; color: #856404; font-size: 12px;
+      padding: 4px 10px; border-radius: 20px; font-weight: 600;
+      display: none;
+    }
+    .unsaved-badge.show { display: inline; }
+
+    /* TEAM GRID */
+    #team-list {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    .team-card {
+      background: var(--white); border-radius: var(--radius);
+      padding: 20px 16px; text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      border: 2px solid transparent;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      position: relative;
+    }
+    .team-card:hover { border-color: var(--red); box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+
+    .card-actions {
+      position: absolute; top: 10px; right: 10px;
+      display: flex; gap: 4px;
+    }
+    .btn-edit, .btn-delete {
+      width: 28px; height: 28px; border-radius: 6px; border: none;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      font-size: 14px; transition: all 0.2s;
+    }
+    .btn-edit { background: #e3f2fd; color: #1565c0; }
+    .btn-edit:hover { background: #1565c0; color: white; }
+    .btn-delete { background: #fdecea; color: var(--red); }
+    .btn-delete:hover { background: var(--red); color: white; }
+
+    .card-avatar {
+      width: 72px; height: 72px; border-radius: 50%; margin: 0 auto 12px;
+      object-fit: cover; object-position: center top;
+      border: 2px solid var(--gray-mid);
+    }
+    .card-initials {
+      width: 72px; height: 72px; border-radius: 50%; margin: 0 auto 12px;
+      background: linear-gradient(135deg, var(--navy), #1a2e5a);
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-size: 18px; font-weight: 700; letter-spacing: 0.5px;
+    }
+    .card-name { font-size: 14px; font-weight: 600; color: var(--navy); margin-bottom: 4px; }
+    .card-role { font-size: 11px; color: var(--red); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    /* MODAL */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1000; padding: 24px; display: none;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--white); border-radius: 16px;
+      padding: 32px; width: 100%; max-width: 480px;
+      box-shadow: 0 16px 60px rgba(0,0,0,0.2);
+    }
+    .modal h2 { font-size: 1.2rem; margin-bottom: 24px; color: var(--navy); }
+    .form-group { margin-bottom: 18px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+    .form-group input, .form-group select {
+      width: 100%; padding: 10px 14px; border: 1.5px solid var(--gray-mid);
+      border-radius: 8px; font-size: 15px; outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus, .form-group select:focus { border-color: var(--red); }
+
+    .photo-preview-wrap { display: flex; align-items: center; gap: 14px; margin-top: 8px; }
+    .photo-preview {
+      width: 60px; height: 60px; border-radius: 50%;
+      object-fit: cover; object-position: center top;
+      border: 2px solid var(--gray-mid); display: none;
+    }
+    .initials-preview {
+      width: 60px; height: 60px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--navy), #1a2e5a);
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-size: 16px; font-weight: 700;
+    }
+    .upload-label {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 16px; background: var(--gray); border-radius: 8px;
+      font-size: 13px; font-weight: 600; cursor: pointer; color: var(--text);
+      border: 1.5px dashed var(--gray-mid); transition: all 0.2s;
+    }
+    .upload-label:hover { border-color: var(--red); color: var(--red); }
+    .upload-label input { display: none; }
+
+    .modal-actions { display: flex; gap: 10px; margin-top: 24px; }
+    .btn-cancel {
+      flex: 1; padding: 11px; background: var(--gray);
+      border: none; border-radius: 8px; font-size: 14px; font-weight: 600;
+      cursor: pointer; color: var(--text); transition: opacity 0.2s;
+    }
+    .btn-cancel:hover { opacity: 0.7; }
+    .btn-confirm {
+      flex: 2; padding: 11px; background: var(--red);
+      border: none; border-radius: 8px; font-size: 14px; font-weight: 600;
+      cursor: pointer; color: white; transition: opacity 0.2s;
+    }
+    .btn-confirm:hover { opacity: 0.88; }
+
+    /* SETTINGS */
+    .settings-banner {
+      background: #fff8e1; border: 1px solid #ffe082; border-radius: 10px;
+      padding: 14px 18px; margin-bottom: 24px; font-size: 13px;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    }
+    .settings-banner span { color: #5d4037; }
+    .btn-settings {
+      background: var(--navy); color: white; border: none;
+      padding: 7px 14px; border-radius: 6px; font-size: 13px;
+      font-weight: 600; cursor: pointer; white-space: nowrap;
+    }
+
+    .spinner {
+      width: 16px; height: 16px; border: 2px solid currentColor;
+      border-top-color: transparent; border-radius: 50%;
+      animation: spin 0.7s linear infinite; display: inline-block;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <img src="../images/est-logo-red.png" alt="EST Financial" />
+    <h1>Team Editor</h1>
+    <p>Sign in to manage your team page</p>
+    <input type="password" id="login-pass" placeholder="Enter password" />
+    <button class="btn-login" onclick="doLogin()">Sign In</button>
+    <p class="login-error" id="login-error">Incorrect password. Try again.</p>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <header>
+    <div class="header-left">
+      <img src="../images/est-logo-white.png" alt="EST Financial" />
+      <span>/ Team Editor</span>
+    </div>
+    <div class="header-right">
+      <a href="../about.html" target="_blank" style="color:rgba(255,255,255,0.5);font-size:13px;text-decoration:none;">View Live Page ↗</a>
+      <button class="btn-logout" onclick="doLogout()">Sign Out</button>
+    </div>
+  </header>
+
+  <div class="main">
+    <div class="page-title">Team Members</div>
+    <p class="page-sub">Add, edit or remove team members. Changes go live automatically.</p>
+
+    <div id="status-bar"></div>
+
+    <div id="settings-banner" class="settings-banner" style="display:none">
+      <span>⚙️ GitHub token not set — changes won't be saved to the live site until you configure it.</span>
+      <button class="btn-settings" onclick="openSettings()">Configure</button>
+    </div>
+
+    <div class="toolbar">
+      <div style="display:flex;gap:10px;align-items:center;">
+        <button class="btn-add" onclick="openAddModal()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Member
+        </button>
+        <span class="unsaved-badge" id="unsaved-badge">Unsaved changes</span>
+      </div>
+      <button class="btn-save" id="btn-save" onclick="saveChanges()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Save &amp; Publish
+      </button>
+    </div>
+
+    <div id="team-list"></div>
+  </div>
+</div>
+
+<!-- EDIT/ADD MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h2 id="modal-title">Add Team Member</h2>
+    <div class="form-group">
+      <label>Full Name</label>
+      <input type="text" id="field-name" placeholder="e.g. Paul Hanna" />
+    </div>
+    <div class="form-group">
+      <label>Job Title</label>
+      <input type="text" id="field-role" placeholder="e.g. Chief Executive Officer" />
+    </div>
+    <div class="form-group">
+      <label>Photo</label>
+      <div class="photo-preview-wrap">
+        <div class="initials-preview" id="initials-prev">?</div>
+        <img class="photo-preview" id="photo-prev" src="" alt="" />
+        <label class="upload-label">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Upload Photo
+          <input type="file" id="field-photo" accept="image/*" onchange="previewPhoto(this)" />
+        </label>
+        <span id="photo-filename" style="font-size:12px;color:var(--text-muted)"></span>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-confirm" onclick="confirmMember()">Save Member</button>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-overlay" id="settings-modal">
+  <div class="modal">
+    <h2>GitHub Settings</h2>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:20px;">Required to publish changes to the live site. Your token is stored only in this browser.</p>
+    <div class="form-group">
+      <label>GitHub Personal Access Token</label>
+      <input type="password" id="field-token" placeholder="ghp_xxxxxxxxxxxx" />
+    </div>
+    <div class="form-group">
+      <label>Repository (owner/repo)</label>
+      <input type="text" id="field-repo" value="estfinancial0-del/estfinancialwebsite" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeSettings()">Cancel</button>
+      <button class="btn-confirm" onclick="saveSettings()">Save Settings</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── CONFIG ─────────────────────────────────────────────────────────────────
+const PASSWORD = 'est2025admin';
+
+// Token is set once via the admin Settings panel
+
+// ─── TEAM DATA ───────────────────────────────────────────────────────────────
+// Loaded from about.html at runtime or fallback to hardcoded
+let team = [
+  { id: 1,  name: 'Paul Hanna',         role: 'Chief Executive Officer',       photo: null },
+  { id: 2,  name: 'Cassandra Hanna',    role: 'QLD General Manager',            photo: null },
+  { id: 3,  name: 'Samuel Hanna',       role: 'Operations Manager',             photo: null },
+  { id: 4,  name: 'Michael Gee',        role: 'Head of Finance',                photo: 'TEam/Michael%20Gee.png' },
+  { id: 5,  name: 'Dominic Carbone',    role: 'Head of Law',                    photo: null },
+  { id: 6,  name: 'Raphael Bove',       role: 'Senior Strategist',              photo: 'TEam/Raphael%20Bove.png' },
+  { id: 7,  name: 'James Peach',        role: 'Asset Acquisition Manager',      photo: null },
+  { id: 8,  name: 'Simon Liddle',       role: 'Financial Advisor',              photo: 'TEam/Simon%20Liddle.png' },
+  { id: 9,  name: 'Jim Calagis',        role: 'Financial Needs Analyst',        photo: 'TEam/Jim%20Calagis.png' },
+  { id: 10, name: 'Umar Khan',          role: 'Financial Needs Analyst',        photo: null },
+  { id: 11, name: 'Caitlin Sager',      role: 'Paralegal',                      photo: null },
+  { id: 12, name: 'Martin Fiay',        role: 'Sales Specialist',               photo: 'TEam/Martin%20Fiay.png' },
+  { id: 13, name: 'Karim Hallal',       role: 'Broker Assistant',               photo: 'TEam/Karim%20Hallal.png' },
+  { id: 14, name: 'Victoria Holsten',   role: 'Client Relationship Manager',    photo: 'TEam/Victoria%20Holsten.png' },
+  { id: 15, name: 'Hans Schmid',        role: 'Marketing Strategist',           photo: 'TEam/Hans%20Schmid.png' },
+  { id: 16, name: 'Justin Immanuelle',  role: 'Digital Media Designer',         photo: 'TEam/Justin%20Immanuelle.png' },
+];
+
+let editingId = null;
+let hasChanges = false;
+let pendingPhotoBase64 = null;
+let pendingPhotoFilename = null;
+let photoUploads = {}; // id -> { base64, filename }
+
+// ─── LOGIN ───────────────────────────────────────────────────────────────────
+function doLogin() {
+  const pw = document.getElementById('login-pass').value;
+  if (pw === PASSWORD) {
+    sessionStorage.setItem('est_admin', '1');
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    checkSettings();
+    renderTeam();
+  } else {
+    document.getElementById('login-error').style.display = 'block';
+  }
+}
+document.getElementById('login-pass').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+function doLogout() {
+  sessionStorage.removeItem('est_admin');
+  location.reload();
+}
+if (sessionStorage.getItem('est_admin')) {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  checkSettings();
+  renderTeam();
+}
+
+// ─── SETTINGS ────────────────────────────────────────────────────────────────
+function checkSettings() {
+  const token = localStorage.getItem('gh_token');
+  document.getElementById('settings-banner').style.display = token ? 'none' : 'flex';
+}
+function openSettings() {
+  document.getElementById('field-token').value = localStorage.getItem('gh_token') || '';
+  document.getElementById('field-repo').value = localStorage.getItem('gh_repo') || 'estfinancial0-del/estfinancialwebsite';
+  document.getElementById('settings-modal').classList.add('open');
+}
+function closeSettings() {
+  document.getElementById('settings-modal').classList.remove('open');
+}
+function saveSettings() {
+  localStorage.setItem('gh_token', document.getElementById('field-token').value.trim());
+  localStorage.setItem('gh_repo', document.getElementById('field-repo').value.trim());
+  closeSettings();
+  checkSettings();
+  showStatus('Settings saved.', 'success');
+}
+
+// ─── RENDER ───────────────────────────────────────────────────────────────────
+function getInitials(name) {
+  return name.split(' ').slice(0,2).map(w => w[0]).join('').toUpperCase();
+}
+function renderTeam() {
+  const list = document.getElementById('team-list');
+  list.innerHTML = team.map(m => `
+    <div class="team-card" id="card-${m.id}">
+      <div class="card-actions">
+        <button class="btn-edit" onclick="openEditModal(${m.id})" title="Edit">✏️</button>
+        <button class="btn-delete" onclick="deleteMember(${m.id})" title="Remove">🗑</button>
+      </div>
+      ${m.photo
+        ? `<img class="card-avatar" src="../images/${m.photo}" alt="${m.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" /><div class="card-initials" style="display:none">${getInitials(m.name)}</div>`
+        : `<div class="card-initials">${getInitials(m.name)}</div>`
+      }
+      <div class="card-name">${m.name}</div>
+      <div class="card-role">${m.role}</div>
+    </div>
+  `).join('');
+}
+
+// ─── MODAL ────────────────────────────────────────────────────────────────────
+function openAddModal() {
+  editingId = null;
+  pendingPhotoBase64 = null;
+  pendingPhotoFilename = null;
+  document.getElementById('modal-title').textContent = 'Add Team Member';
+  document.getElementById('field-name').value = '';
+  document.getElementById('field-role').value = '';
+  document.getElementById('field-photo').value = '';
+  document.getElementById('photo-filename').textContent = '';
+  document.getElementById('initials-prev').textContent = '?';
+  document.getElementById('initials-prev').style.display = 'flex';
+  document.getElementById('photo-prev').style.display = 'none';
+  document.getElementById('modal').classList.add('open');
+}
+function openEditModal(id) {
+  const m = team.find(x => x.id === id);
+  editingId = id;
+  pendingPhotoBase64 = null;
+  pendingPhotoFilename = null;
+  document.getElementById('modal-title').textContent = 'Edit Team Member';
+  document.getElementById('field-name').value = m.name;
+  document.getElementById('field-role').value = m.role;
+  document.getElementById('field-photo').value = '';
+  document.getElementById('photo-filename').textContent = '';
+  document.getElementById('initials-prev').textContent = getInitials(m.name);
+
+  if (m.photo) {
+    document.getElementById('photo-prev').src = `../images/${m.photo}`;
+    document.getElementById('photo-prev').style.display = 'block';
+    document.getElementById('initials-prev').style.display = 'none';
+  } else {
+    document.getElementById('photo-prev').style.display = 'none';
+    document.getElementById('initials-prev').style.display = 'flex';
+  }
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+}
+function previewPhoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    pendingPhotoBase64 = e.target.result;
+    pendingPhotoFilename = file.name;
+    document.getElementById('photo-prev').src = pendingPhotoBase64;
+    document.getElementById('photo-prev').style.display = 'block';
+    document.getElementById('initials-prev').style.display = 'none';
+    document.getElementById('photo-filename').textContent = file.name;
+  };
+  reader.readAsDataURL(file);
+}
+
+// Update initials preview as user types name
+document.getElementById('field-name').addEventListener('input', function() {
+  if (!document.getElementById('photo-prev').style.display || document.getElementById('photo-prev').style.display === 'none') {
+    document.getElementById('initials-prev').textContent = this.value ? getInitials(this.value) : '?';
+  }
+});
+
+function confirmMember() {
+  const name = document.getElementById('field-name').value.trim();
+  const role = document.getElementById('field-role').value.trim();
+  if (!name || !role) { alert('Please fill in both name and role.'); return; }
+
+  if (editingId) {
+    const m = team.find(x => x.id === editingId);
+    m.name = name;
+    m.role = role;
+    if (pendingPhotoBase64) {
+      photoUploads[editingId] = { base64: pendingPhotoBase64, filename: pendingPhotoFilename };
+      m.photo = `TEam/${encodeURIComponent(pendingPhotoFilename)}`;
+    }
+  } else {
+    const newId = Date.now();
+    const newMember = { id: newId, name, role, photo: null };
+    if (pendingPhotoBase64) {
+      photoUploads[newId] = { base64: pendingPhotoBase64, filename: pendingPhotoFilename };
+      newMember.photo = `TEam/${encodeURIComponent(pendingPhotoFilename)}`;
+    }
+    team.push(newMember);
+  }
+
+  closeModal();
+  renderTeam();
+  markUnsaved();
+}
+
+function deleteMember(id) {
+  if (!confirm('Remove this team member from the website?')) return;
+  team = team.filter(m => m.id !== id);
+  renderTeam();
+  markUnsaved();
+}
+
+function markUnsaved() {
+  hasChanges = true;
+  document.getElementById('unsaved-badge').classList.add('show');
+}
+
+// ─── STATUS ───────────────────────────────────────────────────────────────────
+function showStatus(msg, type) {
+  const bar = document.getElementById('status-bar');
+  bar.textContent = msg;
+  bar.className = type;
+  bar.style.display = 'flex';
+  if (type === 'success') setTimeout(() => bar.style.display = 'none', 4000);
+}
+
+// ─── SAVE & PUBLISH ───────────────────────────────────────────────────────────
+async function saveChanges() {
+  const token = localStorage.getItem('gh_token');
+  const repo  = localStorage.getItem('gh_repo') || 'estfinancial0-del/estfinancialwebsite';
+
+  if (!token) {
+    openSettings();
+    return;
+  }
+
+  const btn = document.getElementById('btn-save');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Publishing...';
+  showStatus('Saving changes to GitHub...', 'loading');
+
+  try {
+    // 1. Upload any new photos first
+    for (const [id, upload] of Object.entries(photoUploads)) {
+      const m = team.find(x => x.id == id);
+      if (!m) continue;
+      const base64Clean = upload.base64.split(',')[1];
+      const path = `images/TEam/${upload.filename}`;
+      await githubPut(token, repo, path, base64Clean);
+    }
+    photoUploads = {};
+
+    // 2. Get current about.html SHA
+    const fileRes = await fetch(`https://api.github.com/repos/${repo}/contents/about.html`, {
+      headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github.v3+json' }
+    });
+    const fileData = await fileRes.json();
+    const sha = fileData.sha;
+    const currentContent = atob(fileData.content.replace(/\n/g,''));
+
+    // 3. Build new team HTML
+    const teamHTML = buildTeamHTML();
+
+    // 4. Replace team section in about.html
+    const newContent = currentContent.replace(
+      /(<div class="team-grid">)[\s\S]*?(<\/div>\s*<\/div>\s*<\/section>\s*<!-- VALUES -->)/,
+      `$1\n${teamHTML}\n      $2`
+    );
+
+    // 5. Push to GitHub
+    const encoded = btoa(unescape(encodeURIComponent(newContent)));
+    await fetch(`https://api.github.com/repos/${repo}/contents/about.html`, {
+      method: 'PUT',
+      headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: 'Update team members via admin', content: encoded, sha })
+    });
+
+    hasChanges = false;
+    document.getElementById('unsaved-badge').classList.remove('show');
+    showStatus('✓ Published! Changes will be live in ~30 seconds.', 'success');
+  } catch (err) {
+    showStatus('Error: ' + err.message, 'error');
+    console.error(err);
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Save & Publish';
+}
+
+async function githubPut(token, repo, path, base64content) {
+  // Check if file exists (to get SHA for update)
+  let sha = null;
+  try {
+    const r = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
+      headers: { Authorization: `token ${token}` }
+    });
+    if (r.ok) { const d = await r.json(); sha = d.sha; }
+  } catch(e) {}
+
+  const body = { message: `Upload team photo: ${path}`, content: base64content };
+  if (sha) body.sha = sha;
+
+  await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
+    method: 'PUT',
+    headers: { Authorization: `token ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+}
+
+function buildTeamHTML() {
+  return team.map(m => {
+    if (m.photo) {
+      return `
+        <div class="team-card">
+          <img class="team-photo" src="images/${m.photo}" alt="${m.name}" />
+          <div class="team-info">
+            <h3>${m.name}</h3>
+            <p class="team-role">${m.role}</p>
+          </div>
+        </div>`;
+    } else {
+      const initials = getInitials(m.name);
+      return `
+        <div class="team-card">
+          <div class="team-avatar">${initials}</div>
+          <div class="team-info">
+            <h3>${m.name}</h3>
+            <p class="team-role">${m.role}</p>
+          </div>
+        </div>`;
+    }
+  }).join('\n');
+}
+</script>
+</body>
+</html>

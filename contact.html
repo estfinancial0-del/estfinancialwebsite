@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contact Us | EST Financial</title>
+  <meta name="description" content="Book a free consultation with EST Financial. Talk to our lending, property, tax and legal experts today." />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600;1,700&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="container nav-inner">
+      <a href="index.html" class="logo"><img src="images/est-logo-white.png" alt="est Financial" class="logo-img" /><span class="logo-wordmark">Financial</span></a>
+      <button class="nav-toggle" aria-label="Toggle menu">&#9776;</button>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="services.html">Services</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="media.html">Media</a></li>
+        <li><a href="case-studies.html">Case Studies</a></li>
+        <li><a href="contact.html" class="active">Contact</a></li>
+        <li><a href="contact.html" class="btn btn-nav">Get Started</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <section class="page-hero">
+    <div class="container">
+      <p class="eyebrow">Get in Touch</p>
+      <h1>Book a Free Consultation</h1>
+      <p>Tell us what you're looking to achieve and we'll map out the right strategy for you — no cost, no obligation.</p>
+    </div>
+  </section>
+
+  <section class="section contact-section">
+    <div class="container">
+      <div class="contact-inner">
+
+        <!-- LEFT: Info -->
+        <div class="contact-info">
+          <p class="eyebrow">How It Works</p>
+          <h2>Let's Talk About Your Goals</h2>
+          <p>Whether you're buying your first home, growing your investment portfolio, or wanting to pay less tax — we start with a free 30-minute consultation to understand your situation.</p>
+          <div class="contact-details">
+            <div class="contact-detail">
+              <div class="contact-detail-icon">📧</div>
+              <div>
+                <h4>Email</h4>
+                <p><a href="mailto:info@est.com.au">info@est.com.au</a></p>
+              </div>
+            </div>
+            <div class="contact-detail">
+              <div class="contact-detail-icon">📍</div>
+              <div>
+                <h4>Location</h4>
+                <p>Sydney, NSW, Australia</p>
+              </div>
+            </div>
+            <div class="contact-detail">
+              <div class="contact-detail-icon">⏱️</div>
+              <div>
+                <h4>Response Time</h4>
+                <p>We respond within 1 business day</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="contact-social" style="margin-top: 40px;">
+            <h4 style="font-family: var(--font-body); font-size: 14px; font-weight: 600; color: var(--navy); margin-bottom: 16px;">Follow Us</h4>
+            <div class="social-links-dark">
+              <a href="#" class="social-link-dark">Facebook</a>
+              <a href="#" class="social-link-dark">Instagram</a>
+              <a href="#" class="social-link-dark">LinkedIn</a>
+              <a href="#" class="social-link-dark">YouTube</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: Form (replace with GHL embed when ready) -->
+        <div class="form-box">
+          <h3>Send Us a Message</h3>
+
+          <!--
+            TO ADD YOUR GHL FORM:
+            1. Log into GoHighLevel
+            2. Go to Sites → Forms → click your form → Integrate
+            3. Copy the iframe embed code
+            4. Replace everything between the comment tags below with the iframe
+          -->
+
+          <!-- GHL FORM START -->
+          <form class="contact-form" id="contactForm">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="firstName">First Name *</label>
+                <input type="text" id="firstName" name="firstName" placeholder="John" required />
+              </div>
+              <div class="form-group">
+                <label for="lastName">Last Name *</label>
+                <input type="text" id="lastName" name="lastName" placeholder="Smith" required />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="email">Email Address *</label>
+              <input type="email" id="email" name="email" placeholder="john@example.com" required />
+            </div>
+            <div class="form-group">
+              <label for="phone">Phone Number *</label>
+              <input type="tel" id="phone" name="phone" placeholder="04XX XXX XXX" required />
+            </div>
+            <div class="form-group">
+              <label for="service">What are you interested in?</label>
+              <select id="service" name="service">
+                <option value="">Select a service</option>
+                <option value="lending">Lending / Home Loan</option>
+                <option value="investment-loan">Investment Loan</option>
+                <option value="refinancing">Refinancing</option>
+                <option value="property">Property / Buyer's Agency</option>
+                <option value="tax">Tax Strategy</option>
+                <option value="legal">Legal / Conveyancing</option>
+                <option value="other">Not sure — need advice</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="message">Tell us about your situation</label>
+              <textarea id="message" name="message" placeholder="e.g. Looking to buy my first investment property in Sydney, budget around $800k..."></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary form-submit">Send Message</button>
+            <p class="form-note">🔒 Your information is private and secure. We never share your details.</p>
+          </form>
+          <!-- GHL FORM END -->
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container footer-grid">
+      <div class="footer-col footer-brand">
+        <a href="index.html" class="footer-logo">
+          <img src="images/est-logo-red.png" alt="EST Financial" />
+          <span>Financial</span>
+        </a>
+        <p class="footer-tagline">Strategy-Led Finance, Property &amp; Tax</p>
+        <p class="footer-legal">EST Financial Pty Ltd is a Credit Representative of BLSSA Pty Ltd ACN 117 651 760 (Australian Credit Licence 391237).</p>
+      </div>
+      <div class="footer-col">
+        <h4>Services</h4>
+        <ul>
+          <li><a href="services.html#lending">Finance &amp; Lending</a></li>
+          <li><a href="services.html#property">Property &amp; Investment</a></li>
+          <li><a href="services.html#tax">Tax Strategy</a></li>
+          <li><a href="services.html#legal">Legal Services</a></li>
+          <li><a href="services.html#planning">Financial Planning</a></li>
+          <li><a href="services.html#smsf">SMSF &amp; Wealth</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="about.html">About Us</a></li>
+          <li><a href="about.html#team">Our Team</a></li>
+          <li><a href="case-studies.html">Case Studies</a></li>
+          <li><a href="media.html">Media</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Get in Touch</h4>
+        <ul>
+          <li><a href="tel:1300123378">1300 123 378</a></li>
+          <li><a href="mailto:enquiries@est.com.au">Enquiries@est.com.au</a></li>
+          <li>Level 18, 1 Castlereagh St<br>Sydney NSW 2000</li>
+        </ul>
+        <div class="social-links">
+          <a href="#" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
+          <a href="#" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+          <a href="#" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></a>
+          <a href="https://www.youtube.com/@estfinancial" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 0 0-1.95 1.96A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58A2.78 2.78 0 0 0 3.41 19.6C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.95A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="white"/></svg></a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="container footer-bottom-inner">
+        <p>&copy; 2025 EST Financial Pty Ltd. All rights reserved.</p>
+        <p class="footer-bottom-links"><a href="#">Privacy Policy</a> &middot; <a href="#">Terms of Use</a></p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script src="admin/editor.js"></script>
+</body>
+</html>

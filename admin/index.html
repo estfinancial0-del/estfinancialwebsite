@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>EST Financial — Site Editor</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --navy: #080f1e; --red: #e5291f; --white: #fff;
+  --bg: #f4f5f7; --card: #ffffff;
+  --border: #e2e5ea; --text: #111827; --muted: #6b7280;
+  --sidebar-w: 220px;
+  --radius: 10px;
+}
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* ── LOGIN ── */
+#login { position:fixed; inset:0; background:var(--navy); display:flex; align-items:center; justify-content:center; z-index:999; }
+.login-card { background:#fff; border-radius:16px; padding:48px 40px; width:380px; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.3); }
+.login-card img { height:40px; margin-bottom:28px; }
+.login-card h1 { font-size:1.3rem; color:var(--navy); margin-bottom:6px; }
+.login-card p { color:var(--muted); font-size:13px; margin-bottom:28px; }
+.login-card input { width:100%; padding:12px 14px; border:1.5px solid var(--border); border-radius:8px; font-size:15px; margin-bottom:10px; outline:none; }
+.login-card input:focus { border-color:var(--red); }
+.login-card button { width:100%; padding:13px; background:var(--red); color:#fff; border:none; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer; }
+.login-card button:hover { opacity:.88; }
+.login-err { color:var(--red); font-size:13px; margin-top:8px; display:none; }
+
+/* ── LAYOUT ── */
+#app { display:none; height:100vh; overflow:hidden; }
+.sidebar {
+  position:fixed; top:0; left:0; bottom:0; width:var(--sidebar-w);
+  background:var(--navy); display:flex; flex-direction:column;
+  border-right:1px solid rgba(255,255,255,.06);
+  z-index:10;
+}
+.sidebar-logo { padding:20px 18px 16px; border-bottom:1px solid rgba(255,255,255,.08); }
+.sidebar-logo img { height:28px; }
+.sidebar-nav { flex:1; padding:12px 8px; overflow-y:auto; }
+.nav-label { color:rgba(255,255,255,.3); font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; padding:8px 10px 4px; }
+.nav-item {
+  display:flex; align-items:center; gap:10px;
+  padding:9px 10px; border-radius:8px; cursor:pointer;
+  color:rgba(255,255,255,.55); font-size:13px; font-weight:500;
+  transition:all .15s; margin-bottom:1px;
+}
+.nav-item:hover { background:rgba(255,255,255,.07); color:#fff; }
+.nav-item.active { background:var(--red); color:#fff; }
+.nav-item svg { flex-shrink:0; opacity:.8; }
+.sidebar-footer { padding:14px 16px; border-top:1px solid rgba(255,255,255,.08); }
+.sidebar-footer a { color:rgba(255,255,255,.4); font-size:12px; text-decoration:none; }
+.sidebar-footer a:hover { color:#fff; }
+
+.main { margin-left:var(--sidebar-w); height:100vh; overflow-y:auto; display:flex; flex-direction:column; }
+
+/* ── TOPBAR ── */
+.topbar {
+  background:#fff; border-bottom:1px solid var(--border);
+  padding:0 28px; height:56px;
+  display:flex; align-items:center; justify-content:space-between;
+  position:sticky; top:0; z-index:5;
+}
+.topbar h1 { font-size:1rem; font-weight:600; color:var(--navy); }
+.topbar-right { display:flex; align-items:center; gap:10px; }
+.btn { display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border-radius:7px; font-size:13px; font-weight:600; cursor:pointer; border:none; transition:all .15s; }
+.btn-primary { background:var(--red); color:#fff; }
+.btn-primary:hover { opacity:.88; }
+.btn-secondary { background:var(--navy); color:#fff; }
+.btn-secondary:hover { opacity:.85; }
+.btn-ghost { background:transparent; color:var(--muted); border:1.5px solid var(--border); }
+.btn-ghost:hover { border-color:var(--navy); color:var(--navy); }
+.btn:disabled { opacity:.4; cursor:not-allowed; }
+
+/* ── PANELS ── */
+.panel { display:none; flex:1; padding:28px; }
+.panel.active { display:block; }
+
+/* ── DASHBOARD ── */
+.dash-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:28px; }
+.dash-card { background:#fff; border-radius:var(--radius); padding:20px; border:1.5px solid var(--border); cursor:pointer; transition:all .15s; }
+.dash-card:hover { border-color:var(--red); box-shadow:0 4px 16px rgba(229,41,31,.1); }
+.dash-card-icon { width:40px; height:40px; border-radius:8px; background:#fef2f2; display:flex; align-items:center; justify-content:center; margin-bottom:12px; color:var(--red); }
+.dash-card h3 { font-size:.95rem; font-weight:600; color:var(--navy); margin-bottom:4px; }
+.dash-card p { font-size:12px; color:var(--muted); line-height:1.5; }
+
+/* ── PAGES ── */
+.pages-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:16px; }
+.page-card { background:#fff; border-radius:var(--radius); border:1.5px solid var(--border); overflow:hidden; transition:all .15s; }
+.page-card:hover { border-color:var(--red); box-shadow:0 4px 16px rgba(0,0,0,.08); }
+.page-thumb { height:130px; background:linear-gradient(135deg,#080f1e,#1a2e5a); display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,.2); font-size:13px; }
+.page-thumb img { width:100%; height:100%; object-fit:cover; }
+.page-info { padding:14px 16px; }
+.page-info h3 { font-size:.9rem; font-weight:600; color:var(--navy); margin-bottom:10px; }
+.page-info .page-actions { display:flex; gap:8px; }
+.page-actions .btn { padding:6px 12px; font-size:12px; }
+
+/* ── IMAGES ── */
+.upload-zone {
+  border:2px dashed var(--border); border-radius:var(--radius);
+  padding:48px; text-align:center; cursor:pointer;
+  background:#fff; transition:all .2s; margin-bottom:24px;
+}
+.upload-zone:hover, .upload-zone.drag-over { border-color:var(--red); background:#fef2f2; }
+.upload-zone input { display:none; }
+.upload-zone .upload-icon { color:var(--muted); margin-bottom:12px; }
+.upload-zone h3 { font-size:.95rem; font-weight:600; color:var(--navy); margin-bottom:4px; }
+.upload-zone p { font-size:13px; color:var(--muted); }
+.images-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:12px; }
+.img-item { background:#fff; border-radius:8px; overflow:hidden; border:1.5px solid var(--border); cursor:pointer; transition:all .15s; position:relative; }
+.img-item:hover { border-color:var(--red); }
+.img-item img { width:100%; height:130px; object-fit:cover; display:block; }
+.img-item-info { padding:8px 10px; }
+.img-item-name { font-size:11px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.img-item-actions { position:absolute; top:6px; right:6px; display:flex; gap:4px; opacity:0; transition:opacity .15s; }
+.img-item:hover .img-item-actions { opacity:1; }
+.img-action-btn { width:28px; height:28px; border-radius:6px; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:13px; background:rgba(255,255,255,.95); backdrop-filter:blur(4px); }
+
+/* ── CROPPER MODAL ── */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.6); display:flex; align-items:center; justify-content:center; z-index:100; padding:24px; display:none; }
+.modal-overlay.open { display:flex; }
+.modal { background:#fff; border-radius:16px; width:100%; max-width:700px; max-height:90vh; overflow:hidden; display:flex; flex-direction:column; }
+.modal-header { padding:18px 24px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+.modal-header h2 { font-size:1rem; font-weight:600; color:var(--navy); }
+.modal-body { flex:1; overflow:auto; padding:20px; }
+.modal-footer { padding:16px 24px; border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.crop-container { max-height:400px; background:#111; border-radius:8px; overflow:hidden; }
+.crop-container img { max-width:100%; display:block; }
+.crop-controls { display:flex; gap:8px; margin-top:14px; flex-wrap:wrap; }
+.crop-ratio-btn { padding:6px 12px; border-radius:6px; border:1.5px solid var(--border); background:#fff; font-size:12px; font-weight:600; cursor:pointer; color:var(--muted); }
+.crop-ratio-btn:hover, .crop-ratio-btn.active { border-color:var(--red); color:var(--red); background:#fef2f2; }
+
+/* ── COLOURS ── */
+.colours-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:16px; }
+.colour-card { background:#fff; border-radius:var(--radius); border:1.5px solid var(--border); padding:20px; }
+.colour-preview { height:80px; border-radius:8px; margin-bottom:14px; border:1px solid var(--border); cursor:pointer; transition:transform .15s; }
+.colour-preview:hover { transform:scale(1.02); }
+.colour-card h3 { font-size:.85rem; font-weight:600; color:var(--navy); margin-bottom:4px; }
+.colour-card p { font-size:12px; color:var(--muted); margin-bottom:12px; }
+.colour-input-row { display:flex; gap:8px; align-items:center; }
+.colour-input-row input[type=color] { width:40px; height:36px; border:1.5px solid var(--border); border-radius:6px; cursor:pointer; padding:2px; background:none; }
+.colour-input-row input[type=text] { flex:1; padding:8px 10px; border:1.5px solid var(--border); border-radius:6px; font-size:13px; font-family:monospace; outline:none; }
+.colour-input-row input[type=text]:focus { border-color:var(--red); }
+
+/* ── STATUS TOAST ── */
+#toast { position:fixed; bottom:24px; right:24px; z-index:999; padding:12px 20px; border-radius:10px; font-size:13px; font-weight:600; color:#fff; background:#111827; box-shadow:0 4px 20px rgba(0,0,0,.3); transition:all .3s; transform:translateY(10px); opacity:0; pointer-events:none; max-width:320px; }
+#toast.show { transform:translateY(0); opacity:1; }
+#toast.success { background:#166534; }
+#toast.error { background:#991b1b; }
+
+/* ── SECTION HEADER ── */
+.section-head { margin-bottom:24px; }
+.section-head h2 { font-size:1.2rem; font-weight:700; color:var(--navy); margin-bottom:4px; }
+.section-head p { font-size:13px; color:var(--muted); }
+
+/* ── SPINNER ── */
+.spinner { width:15px; height:15px; border:2px solid rgba(255,255,255,.3); border-top-color:#fff; border-radius:50%; animation:spin .7s linear infinite; display:inline-block; vertical-align:middle; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+/* ── COLOURS SAVE BAR ── */
+.sticky-bar { position:sticky; bottom:0; background:#fff; border-top:1px solid var(--border); padding:14px 28px; display:none; align-items:center; justify-content:space-between; gap:12px; z-index:5; }
+.sticky-bar.show { display:flex; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login">
+  <div class="login-card">
+    <img src="../images/est-logo-red.png" alt="EST Financial" onerror="this.style.display='none'" />
+    <h1>Site Editor</h1>
+    <p>Sign in to manage your website</p>
+    <input type="password" id="login-pw" placeholder="Password" />
+    <button onclick="doLogin()">Sign In</button>
+    <div class="login-err" id="login-err">Incorrect password — try again.</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <img src="../images/est-logo-white.png" alt="EST" onerror="this.src='../images/est-logo-red.png'" />
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-label">Editor</div>
+      <div class="nav-item active" onclick="showPanel('dashboard')">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </div>
+      <div class="nav-item" onclick="showPanel('pages')">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        Edit Pages
+      </div>
+      <div class="nav-item" onclick="showPanel('team')">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Team Members
+      </div>
+      <div class="nav-item" onclick="showPanel('images')">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        Images & Photos
+      </div>
+      <div class="nav-item" onclick="showPanel('colours')">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20"/><path d="M2 12h20"/></svg>
+        Colours
+      </div>
+    </nav>
+    <div class="sidebar-footer" style="display:flex;flex-direction:column;gap:8px;">
+      <a href="../index.html" target="_blank">↗ View Live Site</a>
+      <span style="color:rgba(255,255,255,.3);cursor:pointer;font-size:12px;" onclick="openTokenModal()">⚙ GitHub Settings</span>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <h1 id="panel-title">Dashboard</h1>
+      <div class="topbar-right" id="topbar-actions"></div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div class="panel active" id="panel-dashboard">
+      <div class="dash-grid">
+        <div class="dash-card" onclick="showPanel('pages')">
+          <div class="dash-card-icon"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div>
+          <h3>Edit Page Text</h3>
+          <p>Click any heading or paragraph on your pages and edit it live.</p>
+        </div>
+        <div class="dash-card" onclick="showPanel('team')">
+          <div class="dash-card-icon"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+          <h3>Team Members</h3>
+          <p>Add, edit or remove team members and upload headshots.</p>
+        </div>
+        <div class="dash-card" onclick="showPanel('images')">
+          <div class="dash-card-icon"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
+          <h3>Images & Photos</h3>
+          <p>Upload, crop and manage all photos used on the site.</p>
+        </div>
+        <div class="dash-card" onclick="showPanel('colours')">
+          <div class="dash-card-icon"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20M2 12h20"/></svg></div>
+          <h3>Brand Colours</h3>
+          <p>Change the site's colour palette — red, navy, gold and more.</p>
+        </div>
+        <div class="dash-card" onclick="window.open('../index.html','_blank')">
+          <div class="dash-card-icon"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg></div>
+          <h3>View Live Site</h3>
+          <p>Open estfinancialwebsite.vercel.app in a new tab.</p>
+        </div>
+      </div>
+      <div style="background:#fff;border-radius:var(--radius);border:1.5px solid var(--border);padding:20px;">
+        <p style="font-size:13px;color:var(--muted);line-height:1.7;"><strong style="color:var(--navy);">How to edit text:</strong> Go to <em>Edit Pages</em>, click the page you want, then click any text to edit it directly. Hit <strong>Save &amp; Publish</strong> — changes go live in about 30 seconds.<br/><br/><strong style="color:var(--navy);">Password:</strong> <code style="background:#f4f5f7;padding:2px 6px;border-radius:4px;">est2025admin</code></p>
+      </div>
+    </div>
+
+    <!-- PAGES -->
+    <div class="panel" id="panel-pages">
+      <div class="section-head">
+        <h2>Edit Pages</h2>
+        <p>Click <strong>Edit Text</strong> on any page to open the inline editor. Click any text, make changes, then Save &amp; Publish.</p>
+      </div>
+      <div class="pages-grid">
+        <div class="page-card">
+          <div class="page-thumb" style="background:linear-gradient(135deg,#080f1e,#1a2e5a);">
+            <span style="color:rgba(255,255,255,.4);font-size:11px;">Home</span>
+          </div>
+          <div class="page-info">
+            <h3>Home</h3>
+            <div class="page-actions">
+              <button class="btn btn-primary" onclick="editPage('index.html')">✏️ Edit Text</button>
+              <a href="../index.html" target="_blank" class="btn btn-ghost">↗ View</a>
+            </div>
+          </div>
+        </div>
+        <div class="page-card">
+          <div class="page-thumb" style="background:linear-gradient(135deg,#0f1e38,#1e3562);">
+            <span style="color:rgba(255,255,255,.4);font-size:11px;">About</span>
+          </div>
+          <div class="page-info">
+            <h3>About Us</h3>
+            <div class="page-actions">
+              <button class="btn btn-primary" onclick="editPage('about.html')">✏️ Edit Text</button>
+              <a href="../about.html" target="_blank" class="btn btn-ghost">↗ View</a>
+            </div>
+          </div>
+        </div>
+        <div class="page-card">
+          <div class="page-thumb" style="background:linear-gradient(135deg,#0a1525,#162540);">
+            <span style="color:rgba(255,255,255,.4);font-size:11px;">Services</span>
+          </div>
+          <div class="page-info">
+            <h3>Services</h3>
+            <div class="page-actions">
+              <button class="btn btn-primary" onclick="editPage('services.html')">✏️ Edit Text</button>
+              <a href="../services.html" target="_blank" class="btn btn-ghost">↗ View</a>
+            </div>
+          </div>
+        </div>
+        <div class="page-card">
+          <div class="page-thumb" style="background:linear-gradient(135deg,#080f1e,#14213d);">
+            <span style="color:rgba(255,255,255,.4);font-size:11px;">Media</span>
+          </div>
+          <div class="page-info">
+            <h3>Media</h3>
+            <div class="page-actions">
+              <button class="btn btn-primary" onclick="editPage('media.html')">✏️ Edit Text</button>
+              <a href="../media.html" target="_blank" class="btn btn-ghost">↗ View</a>
+            </div>
+          </div>
+        </div>
+        <div class="page-card">
+          <div class="page-thumb" style="background:linear-gradient(135deg,#0c1830,#1a2e52);">
+            <span style="color:rgba(255,255,255,.4);font-size:11px;">Case Studies</span>
+          </div>
+          <div class="page-info">
+            <h3>Case Studies</h3>
+            <div class="page-actions">
+              <button class="btn btn-primary" onclick="editPage('case-studies.html')">✏️ Edit Text</button>
+              <a href="../case-studies.html" target="_blank" class="btn btn-ghost">↗ View</a>
+            </div>
+          </div>
+        </div>
+        <div class="page-card">
+          <div class="page-thumb" style="background:linear-gradient(135deg,#080f1e,#0f1e38);">
+            <span style="color:rgba(255,255,255,.4);font-size:11px;">Contact</span>
+          </div>
+          <div class="page-info">
+            <h3>Contact</h3>
+            <div class="page-actions">
+              <button class="btn btn-primary" onclick="editPage('contact.html')">✏️ Edit Text</button>
+              <a href="../contact.html" target="_blank" class="btn btn-ghost">↗ View</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TEAM -->
+    <div class="panel" id="panel-team">
+      <div class="section-head">
+        <h2>Team Members</h2>
+        <p>Manage your team — add new members, update photos, change job titles.</p>
+      </div>
+      <div style="background:#fff;border-radius:var(--radius);border:1.5px solid var(--border);padding:32px;text-align:center;">
+        <div style="font-size:40px;margin-bottom:16px;">👥</div>
+        <h3 style="font-size:1.1rem;color:var(--navy);margin-bottom:8px;">Team Editor</h3>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:20px;">The team editor opens in a new tab. Add members, upload headshots, and publish with one click.</p>
+        <a href="team.html" target="_blank" class="btn btn-primary" style="text-decoration:none;">Open Team Editor ↗</a>
+      </div>
+    </div>
+
+    <!-- IMAGES -->
+    <div class="panel" id="panel-images">
+      <div class="section-head">
+        <h2>Images &amp; Photos</h2>
+        <p>Upload new images, crop and resize existing ones, then use them on any page.</p>
+      </div>
+
+      <!-- Upload zone -->
+      <label class="upload-zone" id="upload-zone">
+        <input type="file" id="upload-input" accept="image/*" multiple onchange="handleUpload(this.files)" />
+        <div class="upload-icon">
+          <svg width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        </div>
+        <h3>Drop images here or click to upload</h3>
+        <p>PNG, JPG, WebP — max 10 MB per file</p>
+      </label>
+
+      <div class="images-grid" id="images-grid">
+        <div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--muted);font-size:13px;" id="images-loading">
+          Loading images from GitHub…
+        </div>
+      </div>
+    </div>
+
+    <!-- COLOURS -->
+    <div class="panel" id="panel-colours">
+      <div class="section-head">
+        <h2>Brand Colours</h2>
+        <p>Change your site's colour palette. Click a swatch or type a hex code, then Save.</p>
+      </div>
+      <div class="colours-grid" id="colours-grid">
+        <div style="color:var(--muted);font-size:13px;">Loading colours…</div>
+      </div>
+    </div>
+
+    <!-- COLOURS STICKY SAVE BAR -->
+    <div class="sticky-bar" id="colours-save-bar">
+      <span style="font-size:13px;color:var(--muted);">You have unsaved colour changes.</span>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-ghost" onclick="loadColours()">Discard</button>
+        <button class="btn btn-primary" id="colours-save-btn" onclick="saveColours()">Save &amp; Publish</button>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- CROP MODAL -->
+<div class="modal-overlay" id="crop-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Crop &amp; Resize Photo</h2>
+      <button class="btn btn-ghost" style="padding:6px 12px;font-size:12px;" onclick="closeCropModal()">✕ Cancel</button>
+    </div>
+    <div class="modal-body">
+      <div class="crop-container" id="crop-container">
+        <img id="crop-img" src="" alt="Crop" />
+      </div>
+      <div class="crop-controls">
+        <span style="font-size:12px;font-weight:600;color:var(--muted);align-self:center;margin-right:4px;">Ratio:</span>
+        <button class="crop-ratio-btn active" onclick="setCropRatio(NaN,'free')">Free</button>
+        <button class="crop-ratio-btn" onclick="setCropRatio(1/1,'1:1')">1:1</button>
+        <button class="crop-ratio-btn" onclick="setCropRatio(4/3,'4:3')">4:3</button>
+        <button class="crop-ratio-btn" onclick="setCropRatio(3/4,'3:4')">3:4 Portrait</button>
+        <button class="crop-ratio-btn" onclick="setCropRatio(16/9,'16:9')">16:9</button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <span style="font-size:12px;color:var(--muted);" id="crop-filename"></span>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-ghost" onclick="closeCropModal()">Cancel</button>
+        <button class="btn btn-primary" id="crop-save-btn" onclick="saveCrop()">✓ Save Cropped Image</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOKEN MODAL -->
+<div class="modal-overlay" id="token-modal">
+  <div class="modal" style="max-width:460px;">
+    <div class="modal-header">
+      <h2>⚙ GitHub Settings</h2>
+      <button class="btn btn-ghost" style="padding:6px 12px;font-size:12px;" onclick="closeTokenModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6;">Your GitHub token lets the editor save changes directly to the site. It's stored only in <strong>this browser</strong> and never sent anywhere else.</p>
+      <div style="margin-bottom:14px;">
+        <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">GitHub Personal Access Token</label>
+        <input type="password" id="token-input" placeholder="ghp_xxxxxxxxxxxx" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:monospace;outline:none;" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeTokenModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveToken()">Save Token</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+const PASS   = 'est2025admin';
+const REPO   = 'estfinancial0-del/estfinancialwebsite';
+const BRANCH = 'main';
+
+// ── INIT ──────────────────────────────────────────────────
+// Token stored once via Settings — not hardcoded here
+function ghToken() { return localStorage.getItem('gh_token'); }
+
+// ── LOGIN ─────────────────────────────────────────────────
+document.getElementById('login-pw').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+function doLogin() {
+  if (document.getElementById('login-pw').value === PASS) {
+    sessionStorage.setItem('est_admin', '1');
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    loadColours();
+    loadImages();
+  } else {
+    document.getElementById('login-err').style.display = 'block';
+  }
+}
+if (sessionStorage.getItem('est_admin') === '1') {
+  document.getElementById('login').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  loadColours();
+  loadImages();
+}
+
+// ── PANELS ───────────────────────────────────────────────
+const panelTitles = { dashboard:'Dashboard', pages:'Edit Pages', team:'Team Members', images:'Images & Photos', colours:'Brand Colours' };
+function showPanel(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  document.querySelectorAll('.nav-item')[['dashboard','pages','team','images','colours'].indexOf(id)].classList.add('active');
+  document.getElementById('panel-title').textContent = panelTitles[id];
+}
+
+// ── EDIT PAGE ─────────────────────────────────────────────
+function editPage(file) {
+  const url = '../' + file + '?edit=1';
+  window.open(url, '_blank');
+}
+
+// ── GITHUB HELPERS ────────────────────────────────────────
+async function ghGet(path) {
+  const r = await fetch(`https://api.github.com/repos/${REPO}/contents/${path}?ref=${BRANCH}`, {
+    headers: { Authorization: `token ${ghToken()}` }
+  });
+  if (!r.ok) throw new Error('GitHub fetch failed: ' + r.status);
+  return r.json();
+}
+async function ghPut(path, base64content, sha, message) {
+  const body = { message: message || `Update ${path}`, content: base64content, branch: BRANCH };
+  if (sha) body.sha = sha;
+  const r = await fetch(`https://api.github.com/repos/${REPO}/contents/${path}`, {
+    method: 'PUT',
+    headers: { Authorization: `token ${ghToken()}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  if (!r.ok) { const e = await r.json(); throw new Error(e.message || 'GitHub save failed'); }
+  return r.json();
+}
+function toBase64(str) { return btoa(unescape(encodeURIComponent(str))); }
+function fromBase64(b64) { try { return decodeURIComponent(escape(atob(b64.replace(/\n/g,'')))); } catch(e) { return atob(b64.replace(/\n/g,'')); } }
+
+// ── TOAST ─────────────────────────────────────────────────
+let toastTimer;
+function toast(msg, type='') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.className = ''; }, 3500);
+}
+
+// ── IMAGES ────────────────────────────────────────────────
+let imagesCache = {};
+
+async function loadImages() {
+  const grid = document.getElementById('images-grid');
+  grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--muted);font-size:13px;">Loading…</div>';
+  try {
+    const folders = ['images', 'images/TEam'];
+    let files = [];
+    for (const folder of folders) {
+      try {
+        const items = await ghGet(folder);
+        const imgs = items.filter(f => /\.(png|jpg|jpeg|webp|gif)$/i.test(f.name));
+        imgs.forEach(f => { f._folder = folder; });
+        files = files.concat(imgs);
+      } catch(e) {}
+    }
+    imagesCache = {};
+    files.forEach(f => { imagesCache[f.path] = f.sha; });
+    if (!files.length) {
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--muted);font-size:13px;">No images yet. Upload one above.</div>';
+      return;
+    }
+    grid.innerHTML = files.map(f => `
+      <div class="img-item" id="imgcard-${CSS.escape(f.path)}">
+        <img src="https://raw.githubusercontent.com/${REPO}/${BRANCH}/${f.path}" alt="${f.name}" loading="lazy" onerror="this.src=''" />
+        <div class="img-item-info"><div class="img-item-name" title="${f.name}">${f.name}</div></div>
+        <div class="img-item-actions">
+          <button class="img-action-btn" title="Crop" onclick='openCrop("${f.path}","${f.name}")'>✂️</button>
+          <button class="img-action-btn" title="Copy path" onclick='copyPath("${f.path}")'>📋</button>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:32px;color:#991b1b;font-size:13px;">Error loading images: ${e.message}</div>`;
+  }
+}
+
+function copyPath(path) {
+  navigator.clipboard.writeText('/' + path).then(() => toast('Path copied: /' + path));
+}
+
+async function handleUpload(files) {
+  if (!files.length) return;
+  toast('Uploading…');
+  let success = 0;
+  for (const file of files) {
+    if (file.size > 10 * 1024 * 1024) { toast('File too large: ' + file.name, 'error'); continue; }
+    try {
+      const base64 = await fileToBase64(file);
+      const path = 'images/' + file.name;
+      const existing = imagesCache[path];
+      await ghPut(path, base64, existing || null, 'Upload image: ' + file.name);
+      success++;
+    } catch(e) { toast('Upload failed: ' + e.message, 'error'); }
+  }
+  if (success) { toast(`✓ Uploaded ${success} image${success>1?'s':''}`, 'success'); loadImages(); }
+  document.getElementById('upload-input').value = '';
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = e => resolve(e.target.result.split(',')[1]);
+    r.onerror = reject;
+    r.readAsDataURL(file);
+  });
+}
+
+// Drag & drop
+const zone = document.getElementById('upload-zone');
+zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('drag-over'); handleUpload(e.dataTransfer.files); });
+
+// ── CROPPER ───────────────────────────────────────────────
+let cropper = null;
+let cropPath = null;
+let cropSha  = null;
+
+function openCrop(path, name) {
+  cropPath = path;
+  cropSha  = imagesCache[path] || null;
+  document.getElementById('crop-filename').textContent = name;
+  const img = document.getElementById('crop-img');
+  img.src = 'https://raw.githubusercontent.com/' + REPO + '/' + BRANCH + '/' + path + '?t=' + Date.now();
+  document.getElementById('crop-modal').classList.add('open');
+  img.onload = () => {
+    if (cropper) { cropper.destroy(); cropper = null; }
+    cropper = new Cropper(img, { viewMode: 1, autoCropArea: 1, movable: true, zoomable: true });
+  };
+}
+
+function closeCropModal() {
+  document.getElementById('crop-modal').classList.remove('open');
+  if (cropper) { cropper.destroy(); cropper = null; }
+}
+
+function setCropRatio(ratio, label) {
+  if (cropper) cropper.setAspectRatio(isNaN(ratio) ? NaN : ratio);
+  document.querySelectorAll('.crop-ratio-btn').forEach(b => b.classList.toggle('active', b.textContent === label));
+}
+
+async function saveCrop() {
+  if (!cropper) return;
+  const btn = document.getElementById('crop-save-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Saving…';
+  try {
+    const canvas = cropper.getCroppedCanvas({ maxWidth: 2000, maxHeight: 2000, imageSmoothingQuality: 'high' });
+    const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.9));
+    const base64 = await fileToBase64(blob instanceof File ? blob : new File([blob], 'crop.jpg', { type: 'image/jpeg' }));
+    await ghPut(cropPath, base64, cropSha, 'Crop image: ' + cropPath);
+    toast('✓ Cropped image saved. Live in ~30s.', 'success');
+    closeCropModal();
+    setTimeout(loadImages, 2000);
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+  btn.disabled = false; btn.textContent = '✓ Save Cropped Image';
+}
+
+// ── COLOURS ───────────────────────────────────────────────
+const COLOUR_DEFS = [
+  { key: '--red',        label: 'Primary Red',   desc: 'Buttons, accents, highlights' },
+  { key: '--navy',       label: 'Primary Navy',  desc: 'Background, navbar, headings' },
+  { key: '--navy-mid',   label: 'Navy Mid',      desc: 'Cards, secondary backgrounds' },
+  { key: '--navy-light', label: 'Navy Light',    desc: 'Hover states, borders' },
+  { key: '--gold',       label: 'Gold',          desc: 'Star ratings, premium accents' },
+  { key: '--off-white',  label: 'Off White',     desc: 'Section backgrounds' },
+];
+let colourValues = {};
+let cssFileSha   = null;
+
+async function loadColours() {
+  try {
+    const data = await ghGet('css/style.css');
+    cssFileSha = data.sha;
+    const css = fromBase64(data.content);
+    const root = css.match(/:root\s*\{([^}]+)\}/)?.[1] || '';
+    const matches = [...root.matchAll(/(--[\w-]+)\s*:\s*(#[0-9a-fA-F]{3,8}|rgba?\([^)]+\))/g)];
+    matches.forEach(m => { colourValues[m[1]] = m[2]; });
+    renderColours(css);
+  } catch(e) { console.warn('Could not load colours:', e); }
+}
+
+function renderColours(cssText) {
+  const grid = document.getElementById('colours-grid');
+  grid.innerHTML = COLOUR_DEFS.map(def => {
+    const val = colourValues[def.key] || '#cccccc';
+    return `
+      <div class="colour-card">
+        <div class="colour-preview" style="background:${val}" onclick="document.getElementById('cp-${def.key.slice(2)}').click()"></div>
+        <h3>${def.label}</h3>
+        <p>${def.desc}</p>
+        <div class="colour-input-row">
+          <input type="color" id="cp-${def.key.slice(2)}" value="${hexify(val)}" data-var="${def.key}" onchange="onColourChange(this)" oninput="onColourChange(this)" />
+          <input type="text" id="ct-${def.key.slice(2)}" value="${val}" data-var="${def.key}" onchange="onColourTextChange(this)" onblur="onColourTextChange(this)" />
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function hexify(val) {
+  if (val.startsWith('#')) return val.slice(0,7);
+  return '#cccccc';
+}
+
+function onColourChange(input) {
+  const varName = input.dataset.var;
+  const hex = input.value;
+  colourValues[varName] = hex;
+  const key = varName.slice(2);
+  document.getElementById('ct-' + key).value = hex;
+  document.querySelector(`#cp-${key}`).closest('.colour-card').querySelector('.colour-preview').style.background = hex;
+  document.getElementById('colours-save-bar').classList.add('show');
+}
+
+function onColourTextChange(input) {
+  const varName = input.dataset.var;
+  const val = input.value.trim();
+  if (!/^#[0-9a-fA-F]{3,8}$/.test(val)) return;
+  colourValues[varName] = val;
+  const key = varName.slice(2);
+  const cp = document.getElementById('cp-' + key);
+  if (cp) cp.value = val;
+  document.querySelector(`#cp-${key}`).closest('.colour-card').querySelector('.colour-preview').style.background = val;
+  document.getElementById('colours-save-bar').classList.add('show');
+}
+
+// ── TOKEN MODAL ───────────────────────────────────────────
+function openTokenModal() {
+  document.getElementById('token-input').value = localStorage.getItem('gh_token') || '';
+  document.getElementById('token-modal').classList.add('open');
+}
+function closeTokenModal() { document.getElementById('token-modal').classList.remove('open'); }
+function saveToken() {
+  const t = document.getElementById('token-input').value.trim();
+  if (!t) { toast('Please enter a token', 'error'); return; }
+  localStorage.setItem('gh_token', t);
+  closeTokenModal();
+  toast('✓ Token saved', 'success');
+  loadColours();
+  loadImages();
+}
+
+// Check token on load
+if (!localStorage.getItem('gh_token')) {
+  setTimeout(openTokenModal, 600);
+}
+
+async function saveColours() {
+  const btn = document.getElementById('colours-save-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Saving…';
+  try {
+    const data = await ghGet('css/style.css');
+    let css = fromBase64(data.content);
+    Object.entries(colourValues).forEach(([varName, val]) => {
+      css = css.replace(new RegExp(`(${varName.replace(/[-]/g,'\\$&')}\\s*:\\s*)([^;]+)(;)`, 'g'), `$1${val}$3`);
+    });
+    await ghPut('css/style.css', toBase64(css), data.sha, 'Update brand colours via admin');
+    toast('✓ Colours saved! Live in ~30 seconds.', 'success');
+    cssFileSha = null;
+    document.getElementById('colours-save-bar').classList.remove('show');
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+  btn.disabled = false; btn.textContent = 'Save & Publish';
+}
+</script>
+</body>
+</html>
