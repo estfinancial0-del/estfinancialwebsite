@@ -85,7 +85,7 @@
 </div>
 
 <div id="editHint">
-  <strong>Click any text</strong>&nbsp;to edit &nbsp;·&nbsp; <strong>Click any image</strong>&nbsp;to replace it &nbsp;·&nbsp; Press&nbsp;<strong>Esc</strong>&nbsp;to stop editing &nbsp;·&nbsp; <strong>⌘S / Ctrl+S</strong>&nbsp;to save
+  <strong>Click any text</strong>&nbsp;to edit &nbsp;·&nbsp; <strong>Click any image</strong>&nbsp;to replace it &nbsp;·&nbsp; <strong>Click any placeholder</strong>&nbsp;to add image or video &nbsp;·&nbsp; <strong>▶ Change Video</strong>&nbsp;button on videos &nbsp;·&nbsp; <strong>⌘S</strong>&nbsp;to save
 </div>
 
 <iframe id="frame"></iframe>
@@ -110,6 +110,7 @@ const editHint   = document.getElementById('editHint');
 let editMode    = false;
 let currentPage = null;
 let targetImg   = null;
+let targetMode  = 'image'; // 'image' | 'placeholder' | 'video'
 
 // ── Load page ──────────────────────────────────────────────────────────
 function loadPage(src) {
@@ -158,11 +159,52 @@ function inject() {
 
   // Make images clickable to replace
   doc.querySelectorAll('img').forEach(img => {
+    if (img.closest('nav') || img.closest('.logo')) return; // skip nav logo
     img.dataset.estImg = '1';
     img.style.cursor   = 'pointer';
     img.addEventListener('mouseenter', onImgHover);
     img.addEventListener('mouseleave', onImgLeave);
     img.addEventListener('click',      onImgClick);
+  });
+
+  // Make placeholder divs clickable to replace with an image or video
+  doc.querySelectorAll('[class*="placeholder"], .about-img-wrap, .media-placeholder, .banner-placeholder').forEach(el => {
+    if (el.querySelector('img')) return; // already has an image
+    el.dataset.estPlaceholder = '1';
+    el.style.cursor   = 'pointer';
+    el.style.position = el.style.position || 'relative';
+    // Add overlay label
+    const lbl = doc.createElement('div');
+    lbl.className = '_est-ph-lbl';
+    lbl.style.cssText = `
+      position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+      background:rgba(8,15,30,0.75);backdrop-filter:blur(3px);gap:10px;z-index:10;
+      border:2px dashed rgba(229,41,31,0.5);border-radius:inherit;pointer-events:none;
+    `;
+    lbl.innerHTML = `
+      <span style="font-size:22px">📷</span>
+      <span style="font-size:12px;font-weight:600;color:white;letter-spacing:0.04em;">Click to add Image or Video</span>
+    `;
+    el.appendChild(lbl);
+    el.addEventListener('click', () => onPlaceholderClick(el));
+  });
+
+  // Make YouTube iframes clickable to swap video
+  doc.querySelectorAll('iframe[src*="youtube"]').forEach(iframe => {
+    const wrap = doc.createElement('div');
+    wrap.style.cssText = 'position:relative;display:inline-block;width:100%;';
+    iframe.parentNode.insertBefore(wrap, iframe);
+    wrap.appendChild(iframe);
+    const lbl = doc.createElement('div');
+    lbl.style.cssText = `
+      position:absolute;top:8px;right:8px;background:rgba(229,41,31,0.9);color:white;
+      font-size:11px;font-weight:700;padding:5px 10px;border-radius:6px;cursor:pointer;
+      z-index:10;letter-spacing:0.04em;
+    `;
+    lbl.textContent = '▶ Change Video';
+    lbl.addEventListener('click', () => onVideoClick(iframe));
+    wrap.appendChild(lbl);
+    wrap.dataset.estVideo = '1';
   });
 
   // Esc to exit
@@ -187,6 +229,14 @@ function eject() {
     img.removeEventListener('mouseenter', onImgHover);
     img.removeEventListener('mouseleave', onImgLeave);
     img.removeEventListener('click',      onImgClick);
+  });
+  doc.querySelectorAll('[data-est-placeholder]').forEach(el => {
+    delete el.dataset.estPlaceholder;
+    el.style.cursor = '';
+    el.querySelector('._est-ph-lbl')?.remove();
+  });
+  doc.querySelectorAll('[data-est-video]').forEach(wrap => {
+    delete wrap.dataset.estVideo;
   });
   doc.getElementById('_estLbl')?.remove();
   doc.removeEventListener('keydown', onEsc);
@@ -223,15 +273,184 @@ function onImgClick(e) {
   document.getElementById('imgPicker').click();
 }
 
+// ── Placeholder click — show image or video choice ────────────────────
+function onPlaceholderClick(el) {
+  targetImg  = el;
+  targetMode = 'placeholder';
+  showMediaPicker();
+}
+
+// ── Video iframe click ─────────────────────────────────────────────────
+function onVideoClick(iframe) {
+  targetImg  = iframe;
+  targetMode = 'video';
+  showVideoPicker(iframe.src);
+}
+
+// ── Media picker modal (image or video) ───────────────────────────────
+function showMediaPicker() {
+  document.getElementById('mediaPicker')?.remove();
+  const modal = document.createElement('div');
+  modal.id = 'mediaPicker';
+  modal.style.cssText = `
+    position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:9999;
+    display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);
+  `;
+  modal.innerHTML = `
+    <div style="background:#0d1424;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:24px;width:400px;max-width:90vw;">
+      <h3 style="font-size:15px;font-weight:700;color:white;margin-bottom:6px;">Add Media</h3>
+      <p style="font-size:12px;color:rgba(255,255,255,0.45);margin-bottom:20px;">Choose what to put in this space</p>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <button onclick="document.getElementById('mediaPicker').remove();document.getElementById('imgPicker').click()"
+          style="background:#0f1e35;border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:14px 16px;
+          color:white;font-family:inherit;font-size:13px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:12px;transition:all 0.15s"
+          onmouseover="this.style.borderColor='rgba(229,41,31,0.4)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)'">
+          <span style="font-size:20px;">🖼</span>
+          <span><strong style="display:block;margin-bottom:2px;">Upload Image</strong><span style="font-size:11px;color:rgba(255,255,255,0.4);">JPG, PNG, WebP from your computer</span></span>
+        </button>
+        <button onclick="document.getElementById('mediaPicker').remove();showVideoPicker()"
+          style="background:#0f1e35;border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:14px 16px;
+          color:white;font-family:inherit;font-size:13px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:12px;transition:all 0.15s"
+          onmouseover="this.style.borderColor='rgba(229,41,31,0.4)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.1)'">
+          <span style="font-size:20px;">▶️</span>
+          <span><strong style="display:block;margin-bottom:2px;">Embed YouTube Video</strong><span style="font-size:11px;color:rgba(255,255,255,0.4);">Paste any YouTube link</span></span>
+        </button>
+      </div>
+      <button onclick="document.getElementById('mediaPicker').remove()"
+        style="width:100%;margin-top:12px;background:none;border:none;color:rgba(255,255,255,0.3);font-family:inherit;font-size:12px;cursor:pointer;padding:8px;">
+        Cancel
+      </button>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+// ── Video URL picker ───────────────────────────────────────────────────
+function showVideoPicker(existingSrc) {
+  document.getElementById('videoPicker')?.remove();
+  const currentId = existingSrc ? (existingSrc.match(/embed\/([^?]+)/)?.[1] || '') : '';
+  const modal = document.createElement('div');
+  modal.id = 'videoPicker';
+  modal.style.cssText = `
+    position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:9999;
+    display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);
+  `;
+  modal.innerHTML = `
+    <div style="background:#0d1424;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:24px;width:440px;max-width:90vw;">
+      <h3 style="font-size:15px;font-weight:700;color:white;margin-bottom:4px;">Embed YouTube Video</h3>
+      <p style="font-size:12px;color:rgba(255,255,255,0.45);margin-bottom:18px;">Paste a YouTube link and it will be embedded automatically</p>
+      <input id="videoUrlInput" type="text"
+        placeholder="https://www.youtube.com/watch?v=..."
+        value="${currentId ? 'https://www.youtube.com/watch?v=' + currentId : ''}"
+        style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);
+        border-radius:9px;color:white;font-family:inherit;font-size:13px;padding:10px 14px;
+        outline:none;margin-bottom:8px;"
+      />
+      <p style="font-size:11px;color:rgba(255,255,255,0.3);margin-bottom:16px;">
+        Works with youtube.com/watch?v=... · youtu.be/... · youtube.com/shorts/...
+      </p>
+      <div id="videoPreview" style="margin-bottom:16px;display:none;">
+        <p style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:8px;">Preview</p>
+        <iframe id="videoPreviewFrame" src="" width="100%" height="200" frameborder="0" allow="autoplay;encrypted-media" allowfullscreen style="border-radius:8px;"></iframe>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button onclick="previewVideo()"
+          style="padding:9px 16px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);
+          border-radius:8px;color:white;font-family:inherit;font-size:13px;cursor:pointer;">
+          Preview
+        </button>
+        <button onclick="applyVideo()"
+          style="flex:1;padding:9px 16px;background:#e5291f;border:none;
+          border-radius:8px;color:white;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;">
+          ✓ Add Video
+        </button>
+        <button onclick="document.getElementById('videoPicker').remove()"
+          style="padding:9px 14px;background:none;border:1px solid rgba(255,255,255,0.08);
+          border-radius:8px;color:rgba(255,255,255,0.4);font-family:inherit;font-size:13px;cursor:pointer;">
+          Cancel
+        </button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+function extractYouTubeId(url) {
+  const patterns = [
+    /youtube\.com\/watch\?v=([^&]+)/,
+    /youtu\.be\/([^?]+)/,
+    /youtube\.com\/embed\/([^?]+)/,
+    /youtube\.com\/shorts\/([^?]+)/,
+  ];
+  for (const p of patterns) {
+    const m = url.match(p);
+    if (m) return m[1];
+  }
+  return null;
+}
+
+function previewVideo() {
+  const url = document.getElementById('videoUrlInput').value.trim();
+  const id  = extractYouTubeId(url);
+  if (!id) { alert('Could not find a YouTube video ID in that URL. Please check the link.'); return; }
+  const preview = document.getElementById('videoPreview');
+  document.getElementById('videoPreviewFrame').src = `https://www.youtube.com/embed/${id}`;
+  preview.style.display = 'block';
+}
+
+function applyVideo() {
+  const url = document.getElementById('videoUrlInput').value.trim();
+  const id  = extractYouTubeId(url);
+  if (!id) { alert('Invalid YouTube URL.'); return; }
+  const embedSrc = `https://www.youtube.com/embed/${id}`;
+  document.getElementById('videoPicker').remove();
+
+  const doc = frame.contentDocument;
+
+  if (targetMode === 'video' && targetImg?.tagName === 'IFRAME') {
+    // Swap existing YouTube iframe
+    targetImg.src = embedSrc;
+    setStatus('Video updated — save to publish', 'ok');
+  } else if (targetMode === 'placeholder' && targetImg) {
+    // Replace placeholder div with video iframe
+    const wrapper = doc.createElement('div');
+    wrapper.style.cssText = 'position:relative;width:100%;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:12px;';
+    const iframe = doc.createElement('iframe');
+    iframe.src = embedSrc;
+    iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+    iframe.allowFullscreen = true;
+    iframe.frameBorder = '0';
+    iframe.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;border-radius:12px;';
+    wrapper.appendChild(iframe);
+    targetImg.replaceWith(wrapper);
+    setStatus('Video embedded — save to publish', 'ok');
+  }
+
+  targetImg  = null;
+  targetMode = 'image';
+}
+
 // ── Image file picker ─────────────────────────────────────────────────
 document.getElementById('imgPicker').addEventListener('change', function(e) {
   const file = e.target.files[0];
-  if (!file || !targetImg) return;
+  if (!file) return;
   const reader = new FileReader();
   reader.onload = ev => {
-    targetImg.src = ev.target.result;
-    targetImg     = null;
-    setStatus('Image replaced — save to publish', 'ok');
+    if (targetMode === 'placeholder' && targetImg) {
+      // Replace placeholder div with an actual img
+      const img = frame.contentDocument.createElement('img');
+      img.src   = ev.target.result;
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block;';
+      img.alt   = '';
+      targetImg.innerHTML = '';
+      targetImg.appendChild(img);
+      setStatus('Image added — save to publish', 'ok');
+    } else if (targetImg) {
+      targetImg.src = ev.target.result;
+      setStatus('Image replaced — save to publish', 'ok');
+    }
+    targetImg  = null;
+    targetMode = 'image';
   };
   reader.readAsDataURL(file);
   e.target.value = '';
