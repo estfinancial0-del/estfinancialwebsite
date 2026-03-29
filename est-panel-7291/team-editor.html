@@ -522,16 +522,76 @@ function deleteMember(id) {
 // ── Photo Upload & Crop ───────────────────────────────────────────
 function triggerPhotoUpload(id) {
   activeMemberId = id;
-  document.getElementById('fileInput').click();
+  const m = team.find(t => t.id === id);
+
+  // Restore previous position/bg settings for this member
+  currentPosX = m.posX !== undefined ? m.posX : 50;
+  currentPosY = m.posY !== undefined ? m.posY : 20;
+  currentBg   = m.bg   || '#080f1e';
+
+  // If photo already exists → open editor directly (no re-upload needed)
+  const existingSrc = newPhotoBase64[id] || (m.photo ? (m.photo.startsWith('data:') ? m.photo : '../' + m.photo) : null);
+  if (existingSrc) {
+    // Show a small menu: Edit existing or Replace with new photo
+    showPhotoMenu(id, existingSrc);
+  } else {
+    // No photo yet — go straight to upload
+    document.getElementById('fileInput').click();
+  }
+}
+
+// Mini context menu when photo already exists
+function showPhotoMenu(id, existingSrc) {
+  // Remove any existing menu
+  document.getElementById('photoMenu')?.remove();
+
+  const menu = document.createElement('div');
+  menu.id = 'photoMenu';
+  menu.style.cssText = `
+    position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
+    background:#1e293b; border:1px solid rgba(255,255,255,0.12); border-radius:14px;
+    padding:20px; z-index:9999; min-width:260px; box-shadow:0 20px 60px rgba(0,0,0,0.7);
+  `;
+  menu.innerHTML = `
+    <p style="font-size:13px;font-weight:600;color:white;margin-bottom:14px;">Edit Photo</p>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <button onclick="editExistingPhoto('${id}','${existingSrc.substring(0,50).replace(/'/g,'')}');document.getElementById('photoMenu').remove()"
+        style="background:#e5291f;color:white;border:none;padding:10px 16px;border-radius:8px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;text-align:left;">
+        ✏ Edit Current Photo (Crop, Fit, Canva)
+      </button>
+      <button onclick="document.getElementById('photoMenu').remove();document.getElementById('fileInput').click()"
+        style="background:rgba(255,255,255,0.07);color:white;border:1px solid rgba(255,255,255,0.12);padding:10px 16px;border-radius:8px;font-family:inherit;font-size:13px;cursor:pointer;text-align:left;">
+        📷 Replace with New Photo
+      </button>
+      <button onclick="document.getElementById('photoMenu').remove()"
+        style="background:none;color:rgba(255,255,255,0.35);border:none;padding:8px;font-family:inherit;font-size:12px;cursor:pointer;">
+        Cancel
+      </button>
+    </div>
+  `;
+
+  // Close on outside click
+  setTimeout(() => {
+    document.addEventListener('click', function handler(e) {
+      if (!menu.contains(e.target)) { menu.remove(); document.removeEventListener('click', handler); }
+    });
+  }, 10);
+
+  document.body.appendChild(menu);
+}
+
+function editExistingPhoto(id, _) {
+  activeMemberId = id;
+  const m = team.find(t => t.id === id);
+  const src = newPhotoBase64[id] || (m.photo ? (m.photo.startsWith('data:') ? m.photo : '../' + m.photo) : null);
+  if (src) openCrop(src);
 }
 
 document.getElementById('fileInput').addEventListener('change', function(e) {
   const file = e.target.files[0];
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = function(ev) {
-    openCrop(ev.target.result);
-  };
+  reader.onload = function(ev) { openCrop(ev.target.result); };
   reader.readAsDataURL(file);
   e.target.value = '';
 });
