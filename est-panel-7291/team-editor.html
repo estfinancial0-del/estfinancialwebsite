@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>EST Admin — Team Editor</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- Cropper.js -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #0d1526; color: white; min-height: 100vh; }
+
+    .topbar {
+      background: #111827; border-bottom: 1px solid rgba(255,255,255,0.07);
+      padding: 0 1.5rem; height: 56px;
+      display: flex; align-items: center; gap: 1rem;
+    }
+    .topbar a { color: rgba(255,255,255,0.4); font-size: 13px; text-decoration: none; }
+    .topbar a:hover { color: white; }
+    .topbar-sep { color: rgba(255,255,255,0.15); }
+    .topbar h1 { font-size: 14px; font-weight: 600; flex: 1; }
+    .btn { padding: 7px 18px; border-radius: 7px; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; }
+    .btn-save { background: #e5291f; color: white; }
+    .btn-save:hover { background: #c9221a; }
+    .btn-save:disabled { background: #555; cursor: not-allowed; }
+    .btn-add { background: rgba(255,255,255,0.08); color: white; }
+    .btn-add:hover { background: rgba(255,255,255,0.14); }
+
+    .main { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; }
+    .status-bar {
+      padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 1.5rem;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .status-bar.idle    { background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.4); }
+    .status-bar.saving  { background: rgba(234,179,8,0.1);   color: #fde047; }
+    .status-bar.saved   { background: rgba(34,197,94,0.1);   color: #86efac; }
+    .status-bar.error   { background: rgba(229,41,31,0.1);   color: #f87171; }
+
+    /* Team grid */
+    .team-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem;
+      margin-bottom: 2rem;
+    }
+    .team-card {
+      background: #111827; border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px; overflow: hidden;
+      transition: border-color 0.2s;
+    }
+    .team-card:hover { border-color: rgba(229,41,31,0.4); }
+
+    /* Rectangle photo */
+    .card-photo {
+      width: 100%; height: 200px; position: relative; overflow: hidden;
+      background: linear-gradient(145deg, #0f1d3a, #1a2d52);
+      cursor: pointer;
+    }
+    .card-photo img {
+      width: 100%; height: 100%; object-fit: cover; object-position: center top;
+      display: block;
+    }
+    .card-photo-initials {
+      width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.5rem; font-weight: 700; color: rgba(255,255,255,0.6);
+    }
+    .card-photo-overlay {
+      position: absolute; inset: 0;
+      background: rgba(229,41,31,0.8);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; transition: opacity 0.2s;
+      flex-direction: column; gap: 6px;
+    }
+    .card-photo:hover .card-photo-overlay { opacity: 1; }
+    .card-photo-overlay span { font-size: 13px; font-weight: 600; }
+    .card-photo-overlay svg { width: 24px; height: 24px; }
+
+    .card-body { padding: 1rem; }
+    .card-name {
+      width: 100%; background: transparent; border: none; border-bottom: 1px solid rgba(255,255,255,0.1);
+      color: white; font-family: inherit; font-size: 14px; font-weight: 600;
+      padding: 4px 0; margin-bottom: 8px; outline: none;
+      transition: border-color 0.2s;
+    }
+    .card-name:focus { border-bottom-color: #e5291f; }
+    .card-role {
+      width: 100%; background: transparent; border: none; border-bottom: 1px solid rgba(255,255,255,0.06);
+      color: #f87171; font-family: inherit; font-size: 11px; font-weight: 700;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 4px 0; outline: none; transition: border-color 0.2s;
+    }
+    .card-role:focus { border-bottom-color: #e5291f; }
+    .card-actions { display: flex; gap: 6px; margin-top: 10px; }
+    .card-actions button {
+      flex: 1; padding: 5px; border-radius: 5px;
+      font-family: inherit; font-size: 11px; font-weight: 600;
+      border: 1px solid rgba(255,255,255,0.1); cursor: pointer;
+      background: transparent; color: rgba(255,255,255,0.4);
+      transition: all 0.15s;
+    }
+    .card-actions .btn-del { color: rgba(229,41,31,0.5); border-color: rgba(229,41,31,0.15); }
+    .card-actions .btn-del:hover { background: rgba(229,41,31,0.1); color: #f87171; }
+    .card-actions .btn-photo { }
+    .card-actions .btn-photo:hover { background: rgba(255,255,255,0.08); color: white; }
+
+    /* Add card */
+    .add-card {
+      background: rgba(255,255,255,0.03); border: 2px dashed rgba(255,255,255,0.1);
+      border-radius: 14px; height: 320px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 10px; cursor: pointer; transition: all 0.2s;
+      color: rgba(255,255,255,0.3); font-size: 13px;
+    }
+    .add-card:hover { border-color: #e5291f; color: #e5291f; background: rgba(229,41,31,0.04); }
+    .add-card svg { width: 32px; height: 32px; }
+
+    /* Crop modal */
+    .modal-bg {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+      display: none; align-items: center; justify-content: center;
+      z-index: 1000; padding: 2rem;
+    }
+    .modal-bg.open { display: flex; }
+    .modal {
+      background: #111827; border-radius: 16px;
+      width: 100%; max-width: 700px;
+      padding: 1.5rem;
+      display: flex; flex-direction: column; gap: 1rem;
+    }
+    .modal h3 { font-size: 16px; }
+    .crop-container { height: 380px; background: #0d1526; border-radius: 8px; overflow: hidden; }
+    .crop-container img { max-width: 100%; display: block; }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+    .btn-cancel { background: rgba(255,255,255,0.08); color: white; padding: 8px 20px; border-radius: 7px; font-family: inherit; font-size: 13px; border: none; cursor: pointer; }
+    .btn-crop { background: #e5291f; color: white; padding: 8px 20px; border-radius: 7px; font-family: inherit; font-size: 13px; font-weight: 600; border: none; cursor: pointer; }
+
+    /* Crop controls toolbar */
+    .crop-controls {
+      display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
+      padding: 10px 12px; background: rgba(255,255,255,0.04);
+      border-radius: 10px; border: 1px solid rgba(255,255,255,0.07);
+    }
+    .ctrl-group { display: flex; align-items: center; gap: 4px; }
+    .ctrl-label { font-size: 10px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-right: 2px; }
+    .ctrl-btn {
+      padding: 5px 10px; border-radius: 6px;
+      background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.7); font-family: inherit; font-size: 12px;
+      cursor: pointer; transition: all 0.15s; white-space: nowrap;
+    }
+    .ctrl-btn:hover { background: rgba(255,255,255,0.14); color: white; }
+    .ctrl-btn.active { background: rgba(229,41,31,0.15); border-color: rgba(229,41,31,0.4); color: #f87171; }
+
+    /* Order hint */
+    .order-hint { font-size: 12px; color: rgba(255,255,255,0.2); margin-bottom: 1rem; }
+  </style>
+</head>
+<body>
+<div class="topbar">
+  <a href="dashboard.html">← Dashboard</a>
+  <span class="topbar-sep">/</span>
+  <h1>Manage Team</h1>
+  <button class="btn btn-add" onclick="addMember()">+ Add Member</button>
+  <button class="btn btn-save" id="saveBtn" onclick="saveAll()">💾 Save &amp; Publish</button>
+</div>
+
+<div class="main">
+  <div class="status-bar idle" id="statusBar">✎ Edit names, roles, and photos below. Click Save to publish.</div>
+  <p class="order-hint">Drag to reorder • Click photo area to change picture • Click name/role to edit</p>
+
+  <div class="team-grid" id="teamGrid"></div>
+</div>
+
+<!-- Crop Modal -->
+<div class="modal-bg" id="cropModal">
+  <div class="modal">
+    <h3>Crop &amp; Adjust Photo</h3>
+
+    <!-- Controls -->
+    <div class="crop-controls">
+      <div class="ctrl-group">
+        <span class="ctrl-label">Rotate</span>
+        <button class="ctrl-btn" onclick="cropperInstance.rotate(-90)" title="Rotate left">↺ 90°</button>
+        <button class="ctrl-btn" onclick="cropperInstance.rotate(90)"  title="Rotate right">↻ 90°</button>
+        <button class="ctrl-btn" onclick="cropperInstance.rotate(-5)"  title="Fine left">−5°</button>
+        <button class="ctrl-btn" onclick="cropperInstance.rotate(5)"   title="Fine right">+5°</button>
+      </div>
+      <div class="ctrl-group">
+        <span class="ctrl-label">Flip</span>
+        <button class="ctrl-btn" onclick="cropperInstance.scaleX(cropperInstance.getData().scaleX === -1 ? 1 : -1)">↔ Flip H</button>
+        <button class="ctrl-btn" onclick="cropperInstance.scaleY(cropperInstance.getData().scaleY === -1 ? 1 : -1)">↕ Flip V</button>
+      </div>
+      <div class="ctrl-group">
+        <span class="ctrl-label">Zoom</span>
+        <button class="ctrl-btn" onclick="cropperInstance.zoom(0.1)">＋</button>
+        <button class="ctrl-btn" onclick="cropperInstance.zoom(-0.1)">－</button>
+        <button class="ctrl-btn" onclick="cropperInstance.reset()">Reset</button>
+      </div>
+      <div class="ctrl-group">
+        <span class="ctrl-label">Ratio</span>
+        <button class="ctrl-btn ratio-btn active" onclick="setRatio(3,4,this)">3:4 Portrait</button>
+        <button class="ctrl-btn ratio-btn" onclick="setRatio(1,1,this)">1:1 Square</button>
+        <button class="ctrl-btn ratio-btn" onclick="setRatio(NaN,NaN,this)">Free</button>
+      </div>
+    </div>
+
+    <div class="crop-container" id="cropContainer">
+      <img id="cropImg" src="" alt="" />
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeCrop()">Cancel</button>
+      <button class="btn-crop" onclick="applyCrop()">✓ Use This Crop</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="fileInput" accept="image/*" style="display:none" />
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+<script>
+const SESSION_MS  = 2 * 60 * 60 * 1000;
+const GITHUB_REPO = 'estfinancial0-del/estfinancialwebsite';
+
+if (!sessionStorage.getItem('est_session') || Date.now() - parseInt(sessionStorage.getItem('est_session')) > SESSION_MS) {
+  window.location.href = 'index.html';
+}
+
+const ghToken = localStorage.getItem('est_gh_token');
+
+// ── Initial team data ─────────────────────────────────────────────
+let team = [
+  { id:'1',  name:'Paul Hanna',       role:'Chief Executive Officer',     photo:null,  initials:'PH' },
+  { id:'2',  name:'Cassandra Hanna',  role:'QLD General Manager',         photo:null,  initials:'CH' },
+  { id:'3',  name:'Samuel Hanna',     role:'Operations Manager',          photo:null,  initials:'SH' },
+  { id:'4',  name:'Michael Gee',      role:'Head of Finance',             photo:'images/TEam/Michael Gee.png',     initials:'MG' },
+  { id:'5',  name:'Dominic Carbone',  role:'Head of Law',                 photo:null,  initials:'DC' },
+  { id:'6',  name:'Raphael Bove',     role:'Senior Strategist',           photo:'images/TEam/Raphael Bove.png',    initials:'RB' },
+  { id:'7',  name:'Chris Vaughan',    role:'Senior Strategist',           photo:null,  initials:'CV' },
+  { id:'8',  name:'James Peach',      role:'Asset Acquisition Manager',   photo:null,  initials:'JP' },
+  { id:'9',  name:'Simon Liddle',     role:'Financial Advisor',           photo:'images/TEam/Simon Liddle.png',    initials:'SL' },
+  { id:'10', name:'Jim Calagis',      role:'Financial Needs Analyst',     photo:'images/TEam/Jim Calagis.png',     initials:'JC' },
+  { id:'11', name:'Umar Khan',        role:'Financial Needs Analyst',     photo:null,  initials:'UK' },
+  { id:'12', name:'Caitlin Sager',    role:'Paralegal',                   photo:null,  initials:'CS' },
+  { id:'13', name:'Martin Fiay',      role:'Sales Specialist',            photo:'images/TEam/Martin Fiay.png',     initials:'MF' },
+  { id:'14', name:'Karim Hallal',     role:'Broker Assistant',            photo:'images/TEam/Karim Hallal.png',    initials:'KH' },
+  { id:'15', name:'Victoria Holsten', role:'Client Relationship Manager', photo:'images/TEam/Victoria Holsten.png',initials:'VH' },
+  { id:'16', name:'Hans Schmid',      role:'Marketing Strategist',        photo:'images/TEam/Hans Schmid.png',     initials:'HS' },
+  { id:'17', name:'Justin Immanuelle',role:'Digital Media Designer',      photo:'images/TEam/Justin Immanuelle.png',initials:'JI' },
+];
+
+let cropperInstance = null;
+let activeMemberId  = null;
+let newPhotoBase64  = {};  // id → base64 data url (new uploads)
+
+// ── Render ────────────────────────────────────────────────────────
+function render() {
+  const grid = document.getElementById('teamGrid');
+  grid.innerHTML = '';
+
+  team.forEach(m => {
+    const card = document.createElement('div');
+    card.className = 'team-card';
+    card.dataset.id = m.id;
+
+    const photoSrc = newPhotoBase64[m.id] || (m.photo ? '../' + m.photo : null);
+
+    card.innerHTML = `
+      <div class="card-photo" onclick="triggerPhotoUpload('${m.id}')">
+        ${photoSrc
+          ? `<img src="${photoSrc}" alt="${m.name}" />`
+          : `<div class="card-photo-initials">${m.initials}</div>`
+        }
+        <div class="card-photo-overlay">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          <span>Change Photo</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <input class="card-name" value="${m.name}" placeholder="Full name" oninput="updateField('${m.id}','name',this.value)" />
+        <input class="card-role" value="${m.role}" placeholder="Job title" oninput="updateField('${m.id}','role',this.value)" />
+        <div class="card-actions">
+          <button class="btn-photo" onclick="triggerPhotoUpload('${m.id}')">📷 Photo</button>
+          <button class="btn-del"   onclick="deleteMember('${m.id}')">✕ Remove</button>
+        </div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+
+  // Add new member card
+  const addCard = document.createElement('div');
+  addCard.className = 'add-card';
+  addCard.onclick = addMember;
+  addCard.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span>Add Team Member</span>`;
+  grid.appendChild(addCard);
+}
+
+function updateField(id, field, value) {
+  const m = team.find(t => t.id === id);
+  if (m) {
+    m[field] = value;
+    if (field === 'name') {
+      const words = value.trim().split(' ');
+      m.initials = (words[0]?.[0] || '') + (words[1]?.[0] || '');
+      m.initials = m.initials.toUpperCase();
+    }
+  }
+}
+
+function addMember() {
+  const id = 'new_' + Date.now();
+  team.push({ id, name:'New Member', role:'Role', photo:null, initials:'NM' });
+  render();
+}
+
+function deleteMember(id) {
+  if (!confirm('Remove this team member?')) return;
+  team = team.filter(m => m.id !== id);
+  delete newPhotoBase64[id];
+  render();
+}
+
+// ── Photo Upload & Crop ───────────────────────────────────────────
+function triggerPhotoUpload(id) {
+  activeMemberId = id;
+  document.getElementById('fileInput').click();
+}
+
+document.getElementById('fileInput').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    openCrop(ev.target.result);
+  };
+  reader.readAsDataURL(file);
+  e.target.value = '';
+});
+
+function setRatio(w, h, btn) {
+  document.querySelectorAll('.ratio-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (!cropperInstance) return;
+  cropperInstance.setAspectRatio(isNaN(w) ? NaN : w / h);
+}
+
+function openCrop(src) {
+  document.getElementById('cropModal').classList.add('open');
+  const img = document.getElementById('cropImg');
+  img.src = src;
+
+  // Reset ratio buttons
+  document.querySelectorAll('.ratio-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('.ratio-btn')?.classList.add('active');
+
+  if (cropperInstance) { cropperInstance.destroy(); cropperInstance = null; }
+  setTimeout(() => {
+    cropperInstance = new Cropper(img, {
+      aspectRatio: 3/4,
+      viewMode: 1,
+      guides: true,
+      center: true,
+      background: false,
+      rotatable: true,
+      scalable: true,
+      zoomable: true,
+      movable: true,
+    });
+  }, 200);
+}
+
+function closeCrop() {
+  document.getElementById('cropModal').classList.remove('open');
+  if (cropperInstance) { cropperInstance.destroy(); cropperInstance = null; }
+}
+
+function applyCrop() {
+  if (!cropperInstance || !activeMemberId) return;
+  const canvas = cropperInstance.getCroppedCanvas({ width: 480, height: 640 });
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+  newPhotoBase64[activeMemberId] = dataUrl;
+  closeCrop();
+  render();
+}
+
+// ── Save to GitHub ─────────────────────────────────────────────────
+async function saveAll() {
+  if (!ghToken) { alert('Add your GitHub token in the Dashboard first.'); return; }
+
+  setStatus('saving', '⏳ Uploading photos and updating about.html…');
+  document.getElementById('saveBtn').disabled = true;
+
+  try {
+    // 1. Upload any new photos to GitHub
+    for (const [id, dataUrl] of Object.entries(newPhotoBase64)) {
+      const m = team.find(t => t.id === id);
+      if (!m) continue;
+      const filename = m.name.replace(/[^a-zA-Z0-9 ]/g,'').trim() + '.jpg';
+      const path = `images/TEam/${filename}`;
+      const base64 = dataUrl.split(',')[1];
+
+      // Check if file exists
+      let sha = null;
+      const check = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${path}`, {
+        headers: { 'Authorization': `token ${ghToken}` }
+      });
+      if (check.ok) { const d = await check.json(); sha = d.sha; }
+
+      const body = { message: `📷 Upload photo for ${m.name}`, content: base64 };
+      if (sha) body.sha = sha;
+      await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${path}`, {
+        method: 'PUT', headers: { 'Authorization': `token ${ghToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      m.photo = path;
+    }
+
+    // 2. Generate new about.html team section
+    const aboutResp = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/about.html`, {
+      headers: { 'Authorization': `token ${ghToken}` }
+    });
+    const aboutMeta = await aboutResp.json();
+    let aboutHTML = decodeURIComponent(escape(atob(aboutMeta.content.replace(/\n/g,''))));
+
+    const parser  = new DOMParser();
+    const doc     = parser.parseFromString(aboutHTML, 'text/html');
+    const teamGrid = doc.querySelector('.team-grid');
+
+    if (teamGrid) {
+      teamGrid.innerHTML = team.map(m => {
+        const photoPath = newPhotoBase64[m.id]
+          ? `images/TEam/${m.name.replace(/[^a-zA-Z0-9 ]/g,'').trim()}.jpg`
+          : m.photo;
+        const photoEl = photoPath
+          ? `<img class="team-photo" src="${photoPath}" alt="${m.name}" />`
+          : `<div class="team-avatar">${m.initials}</div>`;
+        return `
+        <div class="team-card">
+          ${photoEl}
+          <div class="team-info">
+            <h3>${m.name}</h3>
+            <p class="team-role">${m.role}</p>
+          </div>
+        </div>`;
+      }).join('\n');
+    }
+
+    const newAbout = '<!DOCTYPE html>\n' + doc.documentElement.outerHTML;
+    await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/about.html`, {
+      method: 'PUT', headers: { 'Authorization': `token ${ghToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: '👥 Update team members via admin panel',
+        content: btoa(unescape(encodeURIComponent(newAbout))),
+        sha: aboutMeta.sha
+      })
+    });
+
+    newPhotoBase64 = {};
+    setStatus('saved', '✓ Team updated! Live on site in ~30 seconds.');
+  } catch(e) {
+    setStatus('error', '✗ Error: ' + e.message);
+  }
+
+  document.getElementById('saveBtn').disabled = false;
+}
+
+function setStatus(type, msg) {
+  const el = document.getElementById('statusBar');
+  el.className = 'status-bar ' + type;
+  el.textContent = msg;
+}
+
+// Init
+render();
+</script>
+</body>
+</html>
