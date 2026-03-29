@@ -57,8 +57,11 @@
       cursor: pointer;
     }
     .card-photo img {
-      width: 100%; height: 100%; object-fit: cover; object-position: center top;
+      width: 100%; height: 100%;
+      object-fit: cover;
       display: block;
+      transform-origin: center center;
+      pointer-events: none;
     }
     .card-photo-initials {
       width: 100%; height: 100%;
@@ -67,14 +70,45 @@
     }
     .card-photo-overlay {
       position: absolute; inset: 0;
-      background: rgba(229,41,31,0.8);
       display: flex; align-items: center; justify-content: center;
       opacity: 0; transition: opacity 0.2s;
-      flex-direction: column; gap: 6px;
+      gap: 8px;
     }
     .card-photo:hover .card-photo-overlay { opacity: 1; }
-    .card-photo-overlay span { font-size: 13px; font-weight: 600; }
-    .card-photo-overlay svg { width: 24px; height: 24px; }
+    .overlay-btn {
+      padding: 7px 12px; border-radius: 8px; border: none;
+      font-family: inherit; font-size: 12px; font-weight: 600;
+      cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 5px;
+    }
+    .overlay-btn.change { background: rgba(229,41,31,0.9); color: white; }
+    .overlay-btn.change:hover { background: #c8241a; }
+    .overlay-btn.reposition { background: rgba(255,255,255,0.15); color: white; backdrop-filter: blur(4px); }
+    .overlay-btn.reposition:hover { background: rgba(255,255,255,0.25); }
+
+    /* Reposition mode */
+    .card-photo.repositioning { cursor: grab; }
+    .card-photo.repositioning:active { cursor: grabbing; }
+    .card-photo.repositioning .card-photo-overlay { opacity: 0 !important; }
+    .reposition-bar {
+      position: absolute; bottom: 0; left: 0; right: 0; z-index: 20;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 8px 10px; background: linear-gradient(to top, rgba(0,0,0,0.85), transparent);
+    }
+    .reposition-hint {
+      font-size: 10px; color: rgba(255,255,255,0.55); font-weight: 500; flex: 1; text-align: left;
+    }
+    .reposition-scale-btn {
+      width: 26px; height: 26px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.1); color: white; font-size: 16px; font-weight: 700;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      line-height: 1; font-family: inherit;
+    }
+    .reposition-scale-btn:hover { background: rgba(255,255,255,0.2); }
+    .reposition-done {
+      padding: 5px 12px; background: #e5291f; color: white;
+      border: none; border-radius: 6px; font-family: inherit; font-size: 11px;
+      font-weight: 700; cursor: pointer;
+    }
 
     .card-body { padding: 1rem; }
     .card-name {
@@ -459,19 +493,23 @@ function render() {
     card.dataset.id = m.id;
 
     const photoSrc = newPhotoBase64[m.id] || (m.photo ? '../' + m.photo : null);
-    const posX = m.posX !== undefined ? m.posX : 50;
-    const posY = m.posY !== undefined ? m.posY : 20;
-    const bg   = m.bg   || '#080f1e';
+    const tx    = m.tx    !== undefined ? m.tx    : 0;
+    const ty    = m.ty    !== undefined ? m.ty    : 0;
+    const scale = m.scale !== undefined ? m.scale : 1;
+    const bg    = m.bg    || '#080f1e';
+    const imgTransform = `translate(${tx}px, ${ty}px) scale(${scale})`;
 
     card.innerHTML = `
-      <div class="card-photo" onclick="triggerPhotoUpload('${m.id}')" style="background:${bg}">
+      <div class="card-photo" id="cp-${m.id}" style="background:${bg}">
         ${photoSrc
-          ? `<img src="${photoSrc}" alt="${m.name}" style="object-position:${posX}% ${posY}%" />`
+          ? `<img src="${photoSrc}" alt="${m.name}" id="img-${m.id}" style="transform:${imgTransform};" draggable="false" />`
           : `<div class="card-photo-initials">${m.initials}</div>`
         }
         <div class="card-photo-overlay">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-          <span>Change Photo</span>
+          <button class="overlay-btn change" onclick="triggerPhotoUpload('${m.id}')">
+            📷 Change
+          </button>
+          ${photoSrc ? `<button class="overlay-btn reposition" onclick="startReposition('${m.id}',event)">↕ Position</button>` : ''}
         </div>
       </div>
       <div class="card-body">
@@ -492,6 +530,122 @@ function render() {
   addCard.onclick = addMember;
   addCard.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span>Add Team Member</span>`;
   grid.appendChild(addCard);
+}
+
+// ── Inline reposition — drag photo directly on the card ───────────────
+let repoActive = null; // { id, startX, startY, startPosX, startPosY }
+
+function startReposition(id, e) {
+  e.stopPropagation();
+  const m    = team.find(t => t.id === id);
+  const wrap = document.getElementById('cp-' + id);
+  const img  = document.getElementById('img-' + id);
+  if (!wrap || !img) return;
+
+  wrap.classList.add('repositioning');
+
+  // Show bottom bar
+  const bar = document.createElement('div');
+  bar.className = 'reposition-bar';
+  bar.id = 'rbar-' + id;
+  bar.innerHTML = `
+    <span class="reposition-hint">Drag · Scroll to zoom</span>
+    <button class="reposition-scale-btn" onclick="adjustScale('${id}',-0.1)">−</button>
+    <button class="reposition-scale-btn" onclick="adjustScale('${id}', 0.1)">+</button>
+    <button class="reposition-done" onclick="stopReposition('${id}')">✓ Done</button>
+  `;
+  wrap.appendChild(bar);
+
+  const tx    = m.tx    !== undefined ? m.tx    : 0;
+  const ty    = m.ty    !== undefined ? m.ty    : 0;
+  const scale = m.scale !== undefined ? m.scale : 1;
+
+  // Ensure at least 1.15× zoom so there's room to drag in all directions
+  const activeScale = scale < 1.15 ? 1.15 : scale;
+  if (activeScale !== scale) {
+    const m2 = team.find(t => t.id === id);
+    if (m2) m2.scale = activeScale;
+    applyTransform(id, tx, ty, activeScale);
+  }
+  repoActive = { id, tx, ty, scale: activeScale };
+
+  wrap.addEventListener('mousedown',  onRepoDragStart);
+  wrap.addEventListener('touchstart', onRepoDragStart, { passive: false });
+  wrap.addEventListener('wheel',      onRepoScroll,    { passive: false });
+}
+
+function stopReposition(id) {
+  const wrap = document.getElementById('cp-' + id);
+  if (wrap) {
+    wrap.classList.remove('repositioning');
+    wrap.removeEventListener('mousedown',  onRepoDragStart);
+    wrap.removeEventListener('touchstart', onRepoDragStart);
+    wrap.removeEventListener('wheel',      onRepoScroll);
+  }
+  document.getElementById('rbar-' + id)?.remove();
+  repoActive = null;
+}
+
+function adjustScale(id, delta) {
+  const m = team.find(t => t.id === id);
+  if (!m) return;
+  const current  = repoActive?.id === id ? repoActive.scale : (m.scale || 1);
+  const newScale = Math.max(0.5, Math.min(4, current + delta));
+  m.scale = newScale;
+  if (repoActive?.id === id) repoActive.scale = newScale;
+  const tx = repoActive?.id === id ? repoActive.tx : (m.tx || 0);
+  const ty = repoActive?.id === id ? repoActive.ty : (m.ty || 0);
+  applyTransform(id, tx, ty, newScale);
+}
+
+function applyTransform(id, tx, ty, scale) {
+  const img = document.getElementById('img-' + id);
+  if (img) img.style.transform = `translate(${tx.toFixed(1)}px, ${ty.toFixed(1)}px) scale(${scale.toFixed(3)})`;
+}
+
+function onRepoScroll(e) {
+  if (!repoActive) return;
+  e.preventDefault();
+  const delta = e.deltaY > 0 ? -0.08 : 0.08;
+  adjustScale(repoActive.id, delta);
+}
+
+function onRepoDragStart(e) {
+  if (!repoActive) return;
+  e.preventDefault();
+  const startX = e.touches ? e.touches[0].clientX : e.clientX;
+  const startY = e.touches ? e.touches[0].clientY : e.clientY;
+  repoActive.startX  = startX;
+  repoActive.startY  = startY;
+  repoActive.startTX = repoActive.tx;
+  repoActive.startTY = repoActive.ty;
+
+  const onMove = ev => {
+    if (!repoActive) return;
+    const cx  = ev.touches ? ev.touches[0].clientX : ev.clientX;
+    const cy  = ev.touches ? ev.touches[0].clientY : ev.clientY;
+    const newTX = repoActive.startTX + (cx - repoActive.startX);
+    const newTY = repoActive.startTY + (cy - repoActive.startY);
+    repoActive.tx = newTX;
+    repoActive.ty = newTY;
+    applyTransform(repoActive.id, newTX, newTY, repoActive.scale);
+  };
+
+  const onUp = () => {
+    if (repoActive) {
+      const m = team.find(t => t.id === repoActive.id);
+      if (m) { m.tx = repoActive.tx; m.ty = repoActive.ty; m.scale = repoActive.scale; }
+    }
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup',   onUp);
+    document.removeEventListener('touchmove', onMove);
+    document.removeEventListener('touchend',  onUp);
+  };
+
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup',   onUp);
+  document.addEventListener('touchmove', onMove, { passive: false });
+  document.addEventListener('touchend',  onUp);
 }
 
 function updateField(id, field, value) {
@@ -716,9 +870,10 @@ function applyFit() {
   const m = team.find(t => t.id === activeMemberId);
   if (m) {
     m._pendingUpload = croppedDataUrl;
-    m.posX = currentPosX;
-    m.posY = currentPosY;
-    m.bg   = currentBg;
+    m.tx    = 0;  // reset position on new photo upload
+    m.ty    = 0;
+    m.scale = 1;
+    m.bg    = currentBg;
     newPhotoBase64[m.id] = croppedDataUrl;
   }
   closeCrop();
@@ -795,8 +950,13 @@ async function saveAll() {
         const photoPath = newPhotoBase64[m.id]
           ? `images/TEam/${m.name.replace(/[^a-zA-Z0-9 ]/g,'').trim()}.jpg`
           : m.photo;
+        const tx    = m.tx    || 0;
+        const ty    = m.ty    || 0;
+        const scale = m.scale || 1;
+        const bg    = m.bg    || '#080f1e';
+        const transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
         const photoEl = photoPath
-          ? `<img class="team-photo" src="${photoPath}" alt="${m.name}" />`
+          ? `<div class="team-photo-wrap" style="background:${bg}"><img src="${photoPath}" alt="${m.name}" style="transform:${transform};" /></div>`
           : `<div class="team-avatar">${m.initials}</div>`;
         return `
         <div class="team-card">
