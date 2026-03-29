@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /est-panel-7291/
+Disallow: /admin/
+Allow: /
+
+Sitemap: https://est.com.au/sitemap.xml
