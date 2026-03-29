@@ -134,6 +134,32 @@
     .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
     .btn-cancel { background: rgba(255,255,255,0.08); color: white; padding: 8px 20px; border-radius: 7px; font-family: inherit; font-size: 13px; border: none; cursor: pointer; }
     .btn-crop { background: #e5291f; color: white; padding: 8px 20px; border-radius: 7px; font-family: inherit; font-size: 13px; font-weight: 600; border: none; cursor: pointer; }
+    .btn-canvas { background: rgba(99,102,241,0.2); color: #a5b4fc; border: 1px solid rgba(99,102,241,0.35); padding: 8px 20px; border-radius: 7px; font-family: inherit; font-size: 13px; cursor: pointer; transition: all 0.15s; }
+    .btn-canvas:hover { background: rgba(99,102,241,0.35); color: white; }
+    .btn-canvas-reset { width: 100%; margin-top: 8px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.5); padding: 7px; border-radius: 7px; font-family: inherit; font-size: 12px; cursor: pointer; }
+    .btn-canvas-reset:hover { background: rgba(255,255,255,0.1); color: white; }
+
+    /* Canvas Modal */
+    .canvas-modal { width: 95vw; max-width: 1100px; max-height: 90vh; display: flex; flex-direction: column; padding: 0; overflow: hidden; }
+    .canvas-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid rgba(255,255,255,0.08); flex-shrink: 0; }
+    .canvas-header h3 { margin: 0; font-size: 1rem; }
+    .canvas-tools { display: flex; gap: 6px; }
+    .tool-btn { padding: 5px 12px; border-radius: 6px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.6); font-family: inherit; font-size: 12px; cursor: pointer; transition: all 0.15s; }
+    .tool-btn:hover { background: rgba(255,255,255,0.12); color: white; }
+    .tool-btn.active { background: rgba(229,41,31,0.2); border-color: rgba(229,41,31,0.5); color: #fca5a5; }
+
+    .canvas-layout { display: flex; flex: 1; overflow: hidden; min-height: 0; }
+    .canvas-sidebar { width: 200px; flex-shrink: 0; background: rgba(0,0,0,0.3); padding: 14px; overflow-y: auto; border-right: 1px solid rgba(255,255,255,0.06); display: flex; flex-direction: column; gap: 6px; }
+    .adj-section { display: flex; flex-direction: column; gap: 5px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .adj-title { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.3); margin: 0; }
+    .canvas-sidebar label { font-size: 11px; color: rgba(255,255,255,0.5); display: flex; justify-content: space-between; margin-top: 4px; }
+    .canvas-sidebar input[type=range] { width: 100%; accent-color: #e5291f; }
+    .filter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+    .filter-btn { padding: 5px 4px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.09); border-radius: 5px; color: rgba(255,255,255,0.6); font-size: 11px; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+    .filter-btn:hover, .filter-btn.active { background: rgba(229,41,31,0.2); border-color: rgba(229,41,31,0.4); color: white; }
+
+    .canvas-wrap { flex: 1; overflow: auto; display: flex; align-items: center; justify-content: center; background: repeating-conic-gradient(rgba(255,255,255,0.03) 0% 25%, transparent 0% 50%) 0 0/20px 20px; }
+    #editCanvas { display: block; max-width: 100%; cursor: crosshair; }
 
     /* Crop controls toolbar */
     .crop-controls {
@@ -211,7 +237,84 @@
 
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeCrop()">Cancel</button>
+      <button class="btn-canvas" onclick="openCanvas()">🎨 Edit in Canvas</button>
       <button class="btn-crop" onclick="applyCrop()">✓ Use This Crop</button>
+    </div>
+  </div>
+</div>
+
+<!-- Canvas Editor Modal -->
+<div class="modal-bg" id="canvasModal">
+  <div class="modal canvas-modal">
+    <div class="canvas-header">
+      <h3>Canvas Editor</h3>
+      <div class="canvas-tools">
+        <button class="tool-btn active" id="toolSelect"  onclick="setTool('select')"  title="Select">↖ Select</button>
+        <button class="tool-btn"        id="toolDraw"    onclick="setTool('draw')"    title="Draw">✏ Draw</button>
+        <button class="tool-btn"        id="toolText"    onclick="setTool('text')"    title="Text">T Text</button>
+        <button class="tool-btn"        id="toolErase"   onclick="setTool('erase')"   title="Erase">◻ Erase</button>
+      </div>
+    </div>
+
+    <div class="canvas-layout">
+      <!-- Left panel: adjustments -->
+      <div class="canvas-sidebar">
+        <div class="adj-section">
+          <p class="adj-title">Adjustments</p>
+          <label>Brightness <span id="brightVal">0</span></label>
+          <input type="range" min="-100" max="100" value="0" id="brightness" oninput="applyFilters()">
+          <label>Contrast <span id="contrastVal">0</span></label>
+          <input type="range" min="-100" max="100" value="0" id="contrast" oninput="applyFilters()">
+          <label>Saturation <span id="satVal">0</span></label>
+          <input type="range" min="-100" max="100" value="0" id="saturation" oninput="applyFilters()">
+          <label>Blur <span id="blurVal">0</span></label>
+          <input type="range" min="0" max="10" value="0" step="0.5" id="blur" oninput="applyFilters()">
+        </div>
+
+        <div class="adj-section">
+          <p class="adj-title">Filters</p>
+          <div class="filter-grid">
+            <button class="filter-btn active" onclick="applyPreset('none',this)">None</button>
+            <button class="filter-btn" onclick="applyPreset('warm',this)">Warm</button>
+            <button class="filter-btn" onclick="applyPreset('cool',this)">Cool</button>
+            <button class="filter-btn" onclick="applyPreset('bw',this)">B&amp;W</button>
+            <button class="filter-btn" onclick="applyPreset('vintage',this)">Vintage</button>
+            <button class="filter-btn" onclick="applyPreset('sharp',this)">Sharp</button>
+          </div>
+        </div>
+
+        <div class="adj-section" id="drawOptions">
+          <p class="adj-title">Draw Options</p>
+          <label>Colour</label>
+          <input type="color" id="drawColor" value="#e5291f" style="width:100%;height:32px;border-radius:6px;border:none;cursor:pointer;">
+          <label>Size <span id="brushSizeVal">4</span>px</label>
+          <input type="range" min="1" max="40" value="4" id="brushSize">
+          <label>Opacity <span id="brushOpacityVal">100</span>%</label>
+          <input type="range" min="10" max="100" value="100" id="brushOpacity">
+        </div>
+
+        <div class="adj-section" id="textOptions" style="display:none;">
+          <p class="adj-title">Text Options</p>
+          <input type="text" id="textInput" placeholder="Type text here..." style="width:100%;padding:6px 8px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:white;font-family:inherit;">
+          <label>Colour</label>
+          <input type="color" id="textColor" value="#ffffff" style="width:100%;height:32px;border-radius:6px;border:none;cursor:pointer;margin-top:4px;">
+          <label>Size <span id="textSizeVal">24</span>px</label>
+          <input type="range" min="10" max="80" value="24" id="textSize" oninput="document.getElementById('textSizeVal').textContent=this.value">
+          <p style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:8px;">Click on the canvas to place text</p>
+        </div>
+
+        <button class="btn-canvas-reset" onclick="resetCanvas()">↺ Reset All</button>
+      </div>
+
+      <!-- Canvas area -->
+      <div class="canvas-wrap">
+        <canvas id="editCanvas"></canvas>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeCanvas()">← Back to Crop</button>
+      <button class="btn-crop" onclick="applyCanvas()">✓ Use This Image</button>
     </div>
   </div>
 </div>
@@ -474,6 +577,193 @@ function setStatus(type, msg) {
 
 // Init
 render();
+
+// ── Canvas Editor ──────────────────────────────────────────────
+let canvasCtx, canvasImg, originalImageData;
+let currentTool = 'select';
+let isDrawing = false;
+let lastX = 0, lastY = 0;
+let canvasFilters = { brightness: 0, contrast: 0, saturation: 0, blur: 0 };
+
+function openCanvas() {
+  // Get cropped image from cropper
+  const croppedCanvas = cropperInstance.getCroppedCanvas({ width: 600, height: 800, imageSmoothingQuality: 'high' });
+  const dataUrl = croppedCanvas.toDataURL('image/jpeg', 0.95);
+
+  const editCanvas = document.getElementById('editCanvas');
+  canvasCtx = editCanvas.getContext('2d');
+
+  canvasImg = new Image();
+  canvasImg.onload = () => {
+    editCanvas.width  = canvasImg.width;
+    editCanvas.height = canvasImg.height;
+    canvasCtx.drawImage(canvasImg, 0, 0);
+    originalImageData = canvasCtx.getImageData(0, 0, editCanvas.width, editCanvas.height);
+    setupCanvasEvents(editCanvas);
+  };
+  canvasImg.src = dataUrl;
+
+  // Reset sliders
+  ['brightness','contrast','saturation','blur'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = 0;
+  });
+  document.getElementById('brightVal').textContent = '0';
+  document.getElementById('contrastVal').textContent = '0';
+  document.getElementById('satVal').textContent = '0';
+  document.getElementById('blurVal').textContent = '0';
+  document.querySelectorAll('.filter-btn').forEach((b,i) => b.classList.toggle('active', i===0));
+
+  document.getElementById('canvasModal').classList.add('open');
+}
+
+function closeCanvas() {
+  document.getElementById('canvasModal').classList.remove('open');
+}
+
+function applyCanvas() {
+  const dataUrl = document.getElementById('editCanvas').toDataURL('image/jpeg', 0.92);
+  // Store as final photo for this member
+  if (editingMemberId !== null) {
+    const m = team.find(t => t.id === editingMemberId);
+    if (m) {
+      m.photo = dataUrl;
+      m._pendingUpload = dataUrl;
+    }
+    render();
+    setStatus('saving', '✎ Image edited — click Save & Publish to go live.');
+  }
+  closeCanvas();
+  closeCrop();
+}
+
+function resetCanvas() {
+  if (!originalImageData || !canvasCtx) return;
+  canvasCtx.putImageData(originalImageData, 0, 0);
+  ['brightness','contrast','saturation','blur'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = 0;
+  });
+  document.getElementById('brightVal').textContent = '0';
+  document.getElementById('contrastVal').textContent = '0';
+  document.getElementById('satVal').textContent = '0';
+  document.getElementById('blurVal').textContent = '0';
+}
+
+function applyFilters() {
+  const b = parseInt(document.getElementById('brightness').value);
+  const c = parseInt(document.getElementById('contrast').value);
+  const s = parseInt(document.getElementById('saturation').value);
+  const bl = parseFloat(document.getElementById('blur').value);
+  document.getElementById('brightVal').textContent = b;
+  document.getElementById('contrastVal').textContent = c;
+  document.getElementById('satVal').textContent = s;
+  document.getElementById('blurVal').textContent = bl;
+
+  const canvas = document.getElementById('editCanvas');
+  // Rebuild from original
+  canvasCtx.putImageData(originalImageData, 0, 0);
+
+  // Apply CSS filter to get the result
+  const tmpCanvas = document.createElement('canvas');
+  tmpCanvas.width = canvas.width; tmpCanvas.height = canvas.height;
+  const tmpCtx = tmpCanvas.getContext('2d');
+
+  const bPct  = 1 + b/100;
+  const cPct  = 1 + c/100;
+  const sPct  = 1 + s/100;
+  tmpCtx.filter = `brightness(${bPct}) contrast(${cPct}) saturate(${sPct})${bl > 0 ? ` blur(${bl}px)` : ''}`;
+  tmpCtx.drawImage(canvas, 0, 0);
+
+  canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+  canvasCtx.drawImage(tmpCanvas, 0, 0);
+}
+
+function applyPreset(name, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const presets = {
+    none:    {brightness:0, contrast:0, saturation:0, blur:0},
+    warm:    {brightness:10, contrast:5, saturation:20, blur:0},
+    cool:    {brightness:5, contrast:5, saturation:-15, blur:0},
+    bw:      {brightness:0, contrast:20, saturation:-100, blur:0},
+    vintage: {brightness:-10, contrast:15, saturation:-30, blur:0},
+    sharp:   {brightness:5, contrast:30, saturation:10, blur:0},
+  };
+  const p = presets[name] || presets.none;
+  Object.entries(p).forEach(([k,v]) => {
+    const el = document.getElementById(k);
+    if (el) el.value = v;
+  });
+  applyFilters();
+}
+
+function setTool(tool) {
+  currentTool = tool;
+  document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tool' + tool.charAt(0).toUpperCase() + tool.slice(1))?.classList.add('active');
+  document.getElementById('drawOptions').style.display = (tool === 'draw' || tool === 'erase') ? 'flex' : 'none';
+  document.getElementById('textOptions').style.display = tool === 'text' ? 'flex' : 'none';
+  const canvas = document.getElementById('editCanvas');
+  canvas.style.cursor = tool === 'draw' ? 'crosshair' : tool === 'text' ? 'text' : tool === 'erase' ? 'cell' : 'default';
+}
+
+function setupCanvasEvents(canvas) {
+  canvas.onmousedown = e => {
+    if (currentTool === 'text') {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      const x = (e.clientX - rect.left) * scaleX;
+      const y = (e.clientY - rect.top) * scaleY;
+      const text = document.getElementById('textInput').value || 'Text';
+      const size = parseInt(document.getElementById('textSize').value);
+      const color = document.getElementById('textColor').value;
+      canvasCtx.font = `bold ${size}px sans-serif`;
+      canvasCtx.fillStyle = color;
+      canvasCtx.shadowColor = 'rgba(0,0,0,0.5)';
+      canvasCtx.shadowBlur = 4;
+      canvasCtx.fillText(text, x, y);
+      canvasCtx.shadowBlur = 0;
+      return;
+    }
+    if (currentTool !== 'draw' && currentTool !== 'erase') return;
+    isDrawing = true;
+    const rect = canvas.getBoundingClientRect();
+    lastX = (e.clientX - rect.left) * (canvas.width / rect.width);
+    lastY = (e.clientY - rect.top)  * (canvas.height / rect.height);
+  };
+  canvas.onmousemove = e => {
+    if (!isDrawing) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = (e.clientX - rect.left) * (canvas.width / rect.width);
+    const y = (e.clientY - rect.top)  * (canvas.height / rect.height);
+    canvasCtx.beginPath();
+    canvasCtx.moveTo(lastX, lastY);
+    canvasCtx.lineTo(x, y);
+    if (currentTool === 'erase') {
+      canvasCtx.globalCompositeOperation = 'destination-out';
+      canvasCtx.lineWidth = parseInt(document.getElementById('brushSize').value) * 3;
+      canvasCtx.strokeStyle = 'rgba(0,0,0,1)';
+    } else {
+      canvasCtx.globalCompositeOperation = 'source-over';
+      canvasCtx.lineWidth = parseInt(document.getElementById('brushSize').value);
+      const opacity = parseInt(document.getElementById('brushOpacity').value) / 100;
+      const color = document.getElementById('drawColor').value;
+      canvasCtx.strokeStyle = color + Math.round(opacity * 255).toString(16).padStart(2,'0');
+    }
+    canvasCtx.lineCap = 'round';
+    canvasCtx.lineJoin = 'round';
+    canvasCtx.stroke();
+    [lastX, lastY] = [x, y];
+    document.getElementById('brushSizeVal').textContent = document.getElementById('brushSize').value;
+    document.getElementById('brushOpacityVal').textContent = document.getElementById('brushOpacity').value;
+  };
+  canvas.onmouseup = canvas.onmouseleave = () => {
+    isDrawing = false;
+    canvasCtx.globalCompositeOperation = 'source-over';
+  };
+}
 </script>
 </body>
 </html>
