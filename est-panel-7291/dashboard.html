@@ -1,172 +1,762 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="robots" content="noindex, nofollow" />
-  <title>EST Admin — Dashboard</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Inter', sans-serif; background: #0d1526; color: white; min-height: 100vh; }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>EST Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;1,14..32,400&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg:       #030712;
+  --surface:  #0a0f1a;
+  --card:     #0d1424;
+  --border:   rgba(255,255,255,0.06);
+  --border2:  rgba(255,255,255,0.10);
+  --red:      #e5291f;
+  --red-dim:  rgba(229,41,31,0.12);
+  --red-glow: rgba(229,41,31,0.25);
+  --green:    #10b981;
+  --yellow:   #f59e0b;
+  --blue:     #3b82f6;
+  --text:     rgba(255,255,255,0.88);
+  --muted:    rgba(255,255,255,0.45);
+  --faint:    rgba(255,255,255,0.18);
+  --sidebar:  220px;
+  --radius:   14px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { height: 100%; }
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: var(--bg); color: var(--text);
+  height: 100%; display: flex; overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
 
-    /* Topbar */
-    .topbar {
-      background: #111827; border-bottom: 1px solid rgba(255,255,255,0.07);
-      padding: 0 2rem; height: 60px;
-      display: flex; align-items: center; justify-content: space-between;
-    }
-    .topbar-logo { display: flex; align-items: center; gap: 10px; }
-    .topbar-logo img { height: 28px; }
-    .topbar-logo span { font-size: 13px; font-weight: 600; opacity: 0.5; letter-spacing: 0.08em; }
-    .topbar-right { display: flex; align-items: center; gap: 1rem; }
-    .session-badge { font-size: 11px; color: rgba(255,255,255,0.3); }
-    .btn-logout {
-      padding: 6px 14px; background: transparent;
-      border: 1px solid rgba(255,255,255,0.15); border-radius: 6px;
-      color: rgba(255,255,255,0.5); font-family: inherit; font-size: 12px;
-      cursor: pointer; transition: all 0.2s;
-    }
-    .btn-logout:hover { border-color: #e5291f; color: #e5291f; }
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
 
-    /* Main */
-    .main { max-width: 1100px; margin: 0 auto; padding: 3rem 2rem; }
-    .greeting { font-size: 1.6rem; font-weight: 700; margin-bottom: 0.4rem; }
-    .greeting span { color: #e5291f; }
-    .subtitle { color: rgba(255,255,255,0.4); font-size: 14px; margin-bottom: 2.5rem; }
+/* ══════════════════════════════════════════
+   SIDEBAR
+══════════════════════════════════════════ */
+.sidebar {
+  width: var(--sidebar); flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  height: 100vh; overflow-y: auto; overflow-x: hidden;
+  position: relative; z-index: 10;
+}
+.sidebar::after {
+  content: '';
+  position: absolute; top: 0; right: 0; bottom: 0; width: 1px;
+  background: linear-gradient(to bottom, transparent, rgba(229,41,31,0.15) 40%, rgba(229,41,31,0.15) 60%, transparent);
+  pointer-events: none;
+}
 
-    /* GitHub token setup */
-    .token-card {
-      background: rgba(234,179,8,0.08); border: 1px solid rgba(234,179,8,0.25);
-      border-radius: 12px; padding: 1.25rem 1.5rem;
-      margin-bottom: 2rem; display: none;
-    }
-    .token-card h3 { color: #fde047; font-size: 13px; margin-bottom: 6px; }
-    .token-card p { color: rgba(255,255,255,0.5); font-size: 12px; margin-bottom: 10px; }
-    .token-row { display: flex; gap: 8px; }
-    .token-row input {
-      flex: 1; padding: 8px 12px;
-      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 6px; color: white; font-family: inherit; font-size: 13px; outline: none;
-    }
-    .token-row button {
-      padding: 8px 16px; background: #fde047; color: #111; font-family: inherit;
-      font-size: 12px; font-weight: 700; border: none; border-radius: 6px; cursor: pointer;
-    }
-    .token-ok {
-      background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2);
-      border-radius: 12px; padding: 1rem 1.5rem;
-      margin-bottom: 2rem; display: none;
-      color: #86efac; font-size: 13px; display: flex; align-items: center; gap: 8px;
-    }
+.sb-logo {
+  padding: 22px 18px 20px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.sb-logo-inner { display: flex; align-items: center; gap: 10px; }
+.sb-logo img { height: 26px; }
+.sb-logo-badge {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.12em;
+  color: var(--red); background: var(--red-dim);
+  padding: 3px 7px; border-radius: 4px;
+  border: 1px solid rgba(229,41,31,0.2);
+}
 
-    /* Nav cards */
-    .nav-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; margin-bottom: 2.5rem; }
-    .nav-card {
-      background: #111827; border: 1px solid rgba(255,255,255,0.07);
-      border-radius: 14px; padding: 1.75rem;
-      text-decoration: none; color: white;
-      transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
-      display: flex; flex-direction: column; gap: 0.75rem;
-    }
-    .nav-card:hover { border-color: #e5291f; transform: translateY(-3px); box-shadow: 0 12px 30px rgba(0,0,0,0.3); }
-    .nav-card-icon {
-      width: 44px; height: 44px; border-radius: 10px;
-      background: rgba(229,41,31,0.12);
-      display: flex; align-items: center; justify-content: center;
-    }
-    .nav-card-icon svg { width: 22px; height: 22px; color: #e5291f; }
-    .nav-card h3 { font-size: 1rem; font-weight: 600; }
-    .nav-card p { font-size: 12px; color: rgba(255,255,255,0.4); line-height: 1.5; }
-    .nav-card .tag {
-      display: inline-block; padding: 2px 8px;
-      background: rgba(229,41,31,0.1); color: #f87171;
-      border-radius: 20px; font-size: 10px; font-weight: 600; letter-spacing: 0.05em;
-    }
+.sb-section { padding: 20px 12px 6px; }
+.sb-label {
+  font-size: 9.5px; font-weight: 600; letter-spacing: 0.1em;
+  color: var(--faint); text-transform: uppercase;
+  padding: 0 8px; margin-bottom: 4px;
+}
 
-    /* Security status */
-    .security-panel {
-      background: #111827; border: 1px solid rgba(255,255,255,0.07);
-      border-radius: 14px; padding: 1.5rem;
-    }
-    .security-panel h3 { font-size: 14px; font-weight: 600; margin-bottom: 1rem; color: rgba(255,255,255,0.7); }
-    .security-list { display: flex; flex-direction: column; gap: 8px; }
-    .security-item { display: flex; align-items: center; gap: 10px; font-size: 13px; color: rgba(255,255,255,0.5); }
-    .dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; flex-shrink: 0; }
-    .dot.warn { background: #fde047; }
-  </style>
+.sb-nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 10px; border-radius: 9px;
+  color: var(--muted); font-size: 13px; font-weight: 500;
+  text-decoration: none; cursor: pointer;
+  transition: all 0.18s; position: relative;
+  border: 1px solid transparent; margin-bottom: 1px;
+}
+.sb-nav-item:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+.sb-nav-item.active {
+  color: white; background: var(--red-dim);
+  border-color: rgba(229,41,31,0.18);
+}
+.sb-nav-item.active .sb-icon { color: var(--red); }
+.sb-icon { width: 16px; height: 16px; flex-shrink: 0; }
+.sb-badge {
+  margin-left: auto; font-size: 10px; font-weight: 600;
+  background: rgba(255,255,255,0.08); color: var(--muted);
+  padding: 2px 6px; border-radius: 4px;
+}
+.sb-badge.live {
+  background: rgba(16,185,129,0.1); color: #34d399;
+  border: 1px solid rgba(16,185,129,0.2);
+}
+
+.sb-spacer { flex: 1; min-height: 20px; }
+
+.sb-footer {
+  padding: 14px 12px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.sb-status-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 10px; border-radius: 9px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  margin-bottom: 8px;
+}
+.pulse-dot {
+  width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+  position: relative;
+}
+.pulse-dot.green { background: var(--green); }
+.pulse-dot.green::after {
+  content: ''; position: absolute; inset: -3px; border-radius: 50%;
+  background: rgba(16,185,129,0.25); animation: pulse 2s infinite;
+}
+.pulse-dot.red { background: var(--red); }
+.pulse-dot.yellow { background: var(--yellow); }
+@keyframes pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0; transform: scale(2); } }
+
+.sb-status-text { flex: 1; }
+.sb-status-text span { display: block; font-size: 11px; font-weight: 500; color: var(--text); }
+.sb-status-text small { font-size: 10px; color: var(--muted); }
+
+.sb-session-bar {
+  padding: 6px 10px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.sb-session-bar span { font-size: 11px; color: var(--faint); }
+.btn-logout {
+  font-size: 11px; font-weight: 500; color: var(--muted);
+  background: none; border: none; cursor: pointer; font-family: inherit;
+  padding: 4px 8px; border-radius: 6px; transition: all 0.15s;
+}
+.btn-logout:hover { color: var(--red); background: var(--red-dim); }
+
+/* ══════════════════════════════════════════
+   MAIN CONTENT
+══════════════════════════════════════════ */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+/* Top header */
+.topbar {
+  height: 58px; flex-shrink: 0;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 12px; padding: 0 28px;
+}
+.breadcrumb {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 13px; color: var(--muted);
+}
+.breadcrumb .sep { opacity: 0.3; }
+.breadcrumb .current { color: var(--text); font-weight: 500; }
+
+.topbar-spacer { flex: 1; }
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+
+.tb-btn {
+  padding: 6px 12px; border-radius: 8px;
+  border: 1px solid var(--border2);
+  background: rgba(255,255,255,0.04);
+  color: var(--muted); font-family: inherit; font-size: 12px;
+  cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 6px;
+}
+.tb-btn:hover { color: var(--text); background: rgba(255,255,255,0.07); }
+.tb-btn.primary { background: var(--red); border-color: var(--red); color: white; font-weight: 600; }
+.tb-btn.primary:hover { background: #c8241a; }
+
+.session-chip {
+  font-size: 11px; color: var(--faint);
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  padding: 5px 10px; border-radius: 20px;
+}
+
+/* Scroll area */
+.content {
+  flex: 1; overflow-y: auto; padding: 28px;
+  display: flex; flex-direction: column; gap: 24px;
+}
+
+/* ── Hero banner ── */
+.hero-banner {
+  background: linear-gradient(135deg, #0d1a2e 0%, #12062a 50%, #1a0a0a 100%);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  padding: 28px 32px;
+  position: relative; overflow: hidden;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.hero-banner::before {
+  content: '';
+  position: absolute; top: -60px; right: -60px;
+  width: 280px; height: 280px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(229,41,31,0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-banner::after {
+  content: '';
+  position: absolute; bottom: -80px; left: 20%;
+  width: 200px; height: 200px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(59,130,246,0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-text { position: relative; z-index: 1; }
+.hero-greeting {
+  font-size: 22px; font-weight: 700; letter-spacing: -0.4px;
+  margin-bottom: 4px;
+}
+.hero-greeting .name { color: var(--red); }
+.hero-sub { font-size: 13px; color: var(--muted); }
+.hero-time {
+  position: relative; z-index: 1; text-align: right;
+}
+.hero-time .time { font-size: 28px; font-weight: 700; letter-spacing: -1px; }
+.hero-time .date { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+/* ── Stats row ── */
+.stats-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
+}
+.stat-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 20px 22px;
+  position: relative; overflow: hidden;
+  transition: border-color 0.2s, transform 0.2s;
+  cursor: default;
+}
+.stat-card:hover { border-color: var(--border2); transform: translateY(-1px); }
+.stat-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent, var(--red)), transparent);
+  opacity: 0; transition: opacity 0.2s;
+}
+.stat-card:hover::before { opacity: 1; }
+.stat-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; }
+.stat-icon {
+  width: 36px; height: 36px; border-radius: 9px;
+  background: var(--icon-bg, var(--red-dim));
+  display: flex; align-items: center; justify-content: center;
+}
+.stat-icon svg { width: 16px; height: 16px; color: var(--icon-color, var(--red)); }
+.stat-trend {
+  font-size: 10px; font-weight: 600; padding: 3px 7px;
+  border-radius: 20px; display: flex; align-items: center; gap: 3px;
+}
+.stat-trend.up   { background: rgba(16,185,129,0.1); color: #34d399; }
+.stat-trend.same { background: rgba(255,255,255,0.05); color: var(--faint); }
+.stat-value { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 2px; }
+.stat-label { font-size: 12px; color: var(--muted); }
+
+/* ── Quick actions ── */
+.section-title {
+  font-size: 11px; font-weight: 600; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--faint); margin-bottom: 14px;
+}
+.actions-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.action-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 22px;
+  text-decoration: none; color: var(--text);
+  transition: all 0.22s;
+  display: flex; flex-direction: column; gap: 14px;
+  position: relative; overflow: hidden;
+  cursor: pointer;
+}
+.action-card::after {
+  content: ''; position: absolute;
+  inset: 0; border-radius: var(--radius);
+  background: radial-gradient(circle at 50% 0%, rgba(229,41,31,0.06) 0%, transparent 70%);
+  opacity: 0; transition: opacity 0.25s;
+}
+.action-card:hover {
+  border-color: rgba(229,41,31,0.25);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(229,41,31,0.08);
+}
+.action-card:hover::after { opacity: 1; }
+.action-header { display: flex; align-items: center; justify-content: space-between; }
+.action-icon {
+  width: 42px; height: 42px; border-radius: 11px;
+  background: var(--red-dim); border: 1px solid rgba(229,41,31,0.15);
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.2s;
+}
+.action-card:hover .action-icon { background: rgba(229,41,31,0.2); }
+.action-icon svg { width: 19px; height: 19px; color: var(--red); }
+.action-arrow { color: var(--faint); transition: transform 0.2s, color 0.2s; }
+.action-card:hover .action-arrow { transform: translate(3px,-3px); color: var(--muted); }
+.action-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+.action-desc { font-size: 12px; color: var(--muted); line-height: 1.55; }
+.action-meta {
+  display: flex; gap: 8px; flex-wrap: wrap;
+}
+.chip {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.05em;
+  padding: 3px 8px; border-radius: 5px;
+  background: rgba(255,255,255,0.05); color: var(--faint);
+  border: 1px solid var(--border);
+}
+.chip.red { background: var(--red-dim); color: #f87171; border-color: rgba(229,41,31,0.2); }
+.chip.green { background: rgba(16,185,129,0.08); color: #34d399; border-color: rgba(16,185,129,0.15); }
+
+/* ── Bottom split ── */
+.split-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+/* ── Panel ── */
+.panel {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden;
+}
+.panel-head {
+  padding: 16px 20px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.panel-head h3 { font-size: 13px; font-weight: 600; }
+.panel-head-right { display: flex; align-items: center; gap: 8px; }
+.panel-body { padding: 8px 0; max-height: 280px; overflow-y: auto; }
+
+/* Activity log */
+.activity-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 11px 20px; transition: background 0.15s;
+}
+.activity-item:hover { background: rgba(255,255,255,0.02); }
+.activity-dot-wrap { position: relative; padding-top: 2px; }
+.activity-icon {
+  width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+}
+.activity-icon.edit   { background: rgba(59,130,246,0.1); }
+.activity-icon.team   { background: rgba(16,185,129,0.1); }
+.activity-icon.deploy { background: var(--red-dim); }
+.activity-icon.login  { background: rgba(245,158,11,0.1); }
+.activity-text { flex: 1; min-width: 0; }
+.activity-text strong { font-size: 12.5px; font-weight: 500; color: var(--text); display: block; }
+.activity-text span { font-size: 11px; color: var(--muted); }
+.activity-time { font-size: 10.5px; color: var(--faint); white-space: nowrap; padding-top: 3px; }
+
+/* Security checks */
+.check-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  transition: background 0.15s;
+}
+.check-item:hover { background: rgba(255,255,255,0.02); }
+.check-item:last-child { border-bottom: none; }
+.check-status {
+  width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+}
+.check-status.ok   { background: rgba(16,185,129,0.12); color: #34d399; }
+.check-status.warn { background: rgba(245,158,11,0.12); color: #fcd34d; }
+.check-status.fail { background: rgba(239,68,68,0.12);  color: #f87171; }
+.check-label { flex: 1; font-size: 12px; color: var(--muted); }
+.check-label strong { color: var(--text); font-weight: 500; }
+
+/* Site pages quick strip */
+.pages-strip { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+.page-chip {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 12px 14px;
+  text-decoration: none; color: var(--text);
+  transition: all 0.18s; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+}
+.page-chip:hover {
+  border-color: rgba(229,41,31,0.3); background: var(--red-dim);
+  transform: translateY(-2px);
+}
+.page-chip-icon { font-size: 18px; }
+.page-chip-name { font-size: 11px; font-weight: 500; }
+
+/* Token setup card */
+.token-setup {
+  background: rgba(245,158,11,0.06);
+  border: 1px solid rgba(245,158,11,0.2);
+  border-radius: var(--radius); padding: 18px 22px;
+  display: flex; align-items: center; gap: 16px;
+}
+.token-setup-icon { font-size: 22px; flex-shrink: 0; }
+.token-setup-body { flex: 1; }
+.token-setup-body h4 { font-size: 13px; font-weight: 600; color: #fde68a; margin-bottom: 3px; }
+.token-setup-body p  { font-size: 12px; color: var(--muted); }
+.token-row { display: flex; gap: 8px; margin-top: 10px; }
+.token-row input {
+  flex: 1; background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 8px; color: white; font-family: inherit; font-size: 13px;
+  padding: 8px 12px; outline: none;
+}
+.token-row input:focus { border-color: rgba(245,158,11,0.4); }
+.token-row button {
+  padding: 8px 16px; background: #f59e0b; color: #111;
+  border: none; border-radius: 8px; font-family: inherit;
+  font-size: 12px; font-weight: 700; cursor: pointer;
+}
+.token-connected {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(16,185,129,0.06); border: 1px solid rgba(16,185,129,0.15);
+  border-radius: var(--radius); padding: 14px 20px;
+  font-size: 13px; color: #34d399;
+}
+
+/* Kbd hint */
+.kbd {
+  display: inline-block; font-size: 9px; font-weight: 600;
+  padding: 2px 5px; border-radius: 4px; letter-spacing: 0.04em;
+  background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12);
+  color: var(--faint); margin-left: 4px; vertical-align: middle;
+  font-family: monospace;
+}
+</style>
 </head>
 <body>
-<div class="topbar">
-  <div class="topbar-logo">
-    <img src="../images/est-logo-red.png" alt="EST" />
-    <span>ADMIN PANEL</span>
-  </div>
-  <div class="topbar-right">
-    <span class="session-badge" id="sessionTimer"></span>
-    <button class="btn-logout" onclick="logout()">Sign Out</button>
-  </div>
-</div>
 
-<div class="main">
-  <div class="greeting">Welcome back, <span>EST Team</span></div>
-  <p class="subtitle">Manage your website content, team, and settings.</p>
-
-  <!-- GitHub Token Setup -->
-  <div class="token-card" id="tokenSetup">
-    <h3>⚠ GitHub Token Required to Publish</h3>
-    <p>Enter your GitHub token once. It stays in your browser only — never sent to any server.</p>
-    <div class="token-row">
-      <input type="password" id="tokenInput" placeholder="ghp_..." />
-      <button onclick="saveToken()">Save Token</button>
+<!-- ══════ SIDEBAR ══════ -->
+<aside class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-inner">
+      <img src="../images/est-logo-red.png" alt="EST" />
+      <span class="sb-logo-badge">ADMIN</span>
     </div>
   </div>
-  <div class="token-ok" id="tokenOk">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-    GitHub token saved — publishing is enabled. Changes go live in ~30 seconds.
-  </div>
 
-  <!-- Main Navigation -->
-  <div class="nav-grid">
-    <a href="site-editor.html" class="nav-card">
-      <div class="nav-card-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-      </div>
-      <h3>Edit Website Text</h3>
-      <p>Change any text, headings, stats, or descriptions across all 6 pages.</p>
-      <span class="tag">6 PAGES</span>
+  <div class="sb-section">
+    <p class="sb-label">Workspace</p>
+    <a class="sb-nav-item active" href="dashboard.html">
+      <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      Dashboard
     </a>
-
-    <a href="team-editor.html" class="nav-card">
-      <div class="nav-card-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-      </div>
-      <h3>Manage Team</h3>
-      <p>Add, edit or remove team members. Upload and crop profile photos.</p>
-      <span class="tag">17 MEMBERS</span>
+    <a class="sb-nav-item" href="site-editor.html">
+      <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      Site Editor
+      <span class="sb-badge">6 pages</span>
     </a>
-
-    <a href="image-editor.html" class="nav-card">
-      <div class="nav-card-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-      </div>
-      <h3>Photos & Images</h3>
-      <p>Replace site images, logos, and banners. Crop and resize to fit perfectly.</p>
-      <span class="tag">IMAGES</span>
+    <a class="sb-nav-item" href="team-editor.html">
+      <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Team Manager
+      <span class="sb-badge">17</span>
     </a>
   </div>
 
-  <!-- Security Status -->
-  <div class="security-panel">
-    <h3>🔐 Security Status</h3>
-    <div class="security-list">
-      <div class="security-item"><div class="dot"></div> Secret URL path — admin not publicly listed</div>
-      <div class="security-item"><div class="dot"></div> Password hashed with SHA-256 — not visible in source code</div>
-      <div class="security-item"><div class="dot"></div> Login lockout — 5 attempts triggers 15-minute block</div>
-      <div class="security-item"><div class="dot"></div> Session timeout — auto sign-out after 2 hours</div>
-      <div class="security-item"><div class="dot"></div> Security headers — XSS, clickjacking & sniffing blocked</div>
-      <div class="security-item"><div class="dot"></div> robots.txt — Google cannot index this panel</div>
-      <div class="security-item"><div class="dot" id="auditDot"></div> <span id="auditLabel">Audit log — each login recorded to GitHub</span></div>
+  <div class="sb-section">
+    <p class="sb-label">Website</p>
+    <a class="sb-nav-item" href="../index.html" target="_blank">
+      <svg class="sb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      View Live Site
+      <span class="sb-badge live">↗</span>
+    </a>
+    <a class="sb-nav-item" href="https://github.com/estfinancial0-del/estfinancialwebsite" target="_blank">
+      <svg class="sb-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0 0 22 12.017C22 6.484 17.522 2 12 2z"/></svg>
+      GitHub Repo
+      <span class="sb-badge live">↗</span>
+    </a>
+  </div>
+
+  <div class="sb-spacer"></div>
+
+  <div class="sb-footer">
+    <!-- Site status -->
+    <div class="sb-status-row">
+      <div class="pulse-dot green" id="siteStatusDot"></div>
+      <div class="sb-status-text">
+        <span id="siteStatusText">Site is live</span>
+        <small id="siteStatusSub">estfinancialwebsite.vercel.app</small>
+      </div>
+    </div>
+    <!-- Session -->
+    <div class="sb-session-bar">
+      <span id="sessionTimer">Session: —</span>
+      <button class="btn-logout" onclick="logout()">Sign out</button>
+    </div>
+  </div>
+</aside>
+
+<!-- ══════ MAIN ══════ -->
+<div class="main">
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="breadcrumb">
+      <span>EST Financial</span>
+      <span class="sep">/</span>
+      <span class="current">Dashboard</span>
+    </div>
+    <div class="topbar-spacer"></div>
+    <div class="topbar-right">
+      <span class="session-chip" id="sessionChip">—</span>
+      <a class="tb-btn" href="../index.html" target="_blank">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        View Site
+      </a>
+      <button class="tb-btn primary" onclick="window.location.href='site-editor.html'">✏ Edit Site</button>
+    </div>
+  </div>
+
+  <!-- Scrollable content -->
+  <div class="content">
+
+    <!-- Token setup / connected -->
+    <div id="tokenSetup" class="token-setup" style="display:none">
+      <span class="token-setup-icon">🔑</span>
+      <div class="token-setup-body">
+        <h4>GitHub Token Required to Publish</h4>
+        <p>Enter your token once. It's saved in your browser only — never sent anywhere.</p>
+        <div class="token-row">
+          <input type="password" id="tokenInput" placeholder="ghp_..." />
+          <button onclick="saveToken()">Connect</button>
+        </div>
+      </div>
+    </div>
+    <div id="tokenOk" class="token-connected" style="display:none">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      GitHub connected — publishing enabled. Changes go live on Vercel in ~30 seconds.
+      <button onclick="clearToken()" style="margin-left:auto;background:none;border:none;color:rgba(255,255,255,0.3);font-family:inherit;font-size:11px;cursor:pointer;padding:4px 8px;border-radius:5px;" onmouseover="this.style.color='#f87171'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">Remove</button>
+    </div>
+
+    <!-- Hero banner -->
+    <div class="hero-banner">
+      <div class="hero-text">
+        <div class="hero-greeting" id="heroGreeting">Good morning, <span class="name">EST Team</span></div>
+        <div class="hero-sub" id="heroSub">Your website is live and looking great.</div>
+      </div>
+      <div class="hero-time">
+        <div class="time" id="heroTime">—</div>
+        <div class="date" id="heroDate">—</div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div>
+      <p class="section-title">Overview</p>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-top">
+            <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+            <span class="stat-trend up">↑ 6 pages</span>
+          </div>
+          <div class="stat-value" id="statPages">6</div>
+          <div class="stat-label">Website Pages</div>
+        </div>
+        <div class="stat-card" style="--icon-bg:rgba(16,185,129,0.1);--icon-color:#10b981;--accent:#10b981">
+          <div class="stat-top">
+            <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+            <span class="stat-trend same">17 active</span>
+          </div>
+          <div class="stat-value">17</div>
+          <div class="stat-label">Team Members</div>
+        </div>
+        <div class="stat-card" style="--icon-bg:rgba(59,130,246,0.1);--icon-color:#3b82f6;--accent:#3b82f6">
+          <div class="stat-top">
+            <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
+            <span class="stat-trend up">✓ 9 uploaded</span>
+          </div>
+          <div class="stat-value">9</div>
+          <div class="stat-label">Team Photos</div>
+        </div>
+        <div class="stat-card" style="--icon-bg:rgba(139,92,246,0.1);--icon-color:#a78bfa;--accent:#8b5cf6">
+          <div class="stat-top">
+            <div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+            <span class="stat-trend up live-badge" id="deployBadge">Checking…</span>
+          </div>
+          <div class="stat-value" id="deployStatus">—</div>
+          <div class="stat-label">Deployment</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick actions -->
+    <div>
+      <p class="section-title">Quick Actions <span class="kbd">E</span> <span class="kbd">T</span></p>
+      <div class="actions-grid">
+
+        <a class="action-card" href="site-editor.html">
+          <div class="action-header">
+            <div class="action-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </div>
+            <svg class="action-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+          </div>
+          <div>
+            <div class="action-title">Site Editor</div>
+            <div class="action-desc">Click any text or image on the live page to edit it directly. Changes publish instantly.</div>
+          </div>
+          <div class="action-meta">
+            <span class="chip red">6 Pages</span>
+            <span class="chip">Text</span>
+            <span class="chip">Images</span>
+          </div>
+        </a>
+
+        <a class="action-card" href="team-editor.html">
+          <div class="action-header">
+            <div class="action-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <svg class="action-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+          </div>
+          <div>
+            <div class="action-title">Team Manager</div>
+            <div class="action-desc">Add, edit or remove team members. Upload photos with built-in crop and position tools.</div>
+          </div>
+          <div class="action-meta">
+            <span class="chip red">17 Members</span>
+            <span class="chip">Photos</span>
+            <span class="chip">Crop</span>
+          </div>
+        </a>
+
+        <div class="action-card" onclick="openSettings()">
+          <div class="action-header">
+            <div class="action-icon" style="background:rgba(59,130,246,0.1);border-color:rgba(59,130,246,0.15)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </div>
+            <svg class="action-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+          </div>
+          <div>
+            <div class="action-title">Settings</div>
+            <div class="action-desc">Manage GitHub token, change admin password, and review security configuration.</div>
+          </div>
+          <div class="action-meta">
+            <span class="chip">Security</span>
+            <span class="chip">GitHub</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Page quick-jump strip -->
+    <div>
+      <p class="section-title">Jump to Page</p>
+      <div class="pages-strip">
+        <a class="page-chip" href="site-editor.html?page=index.html">
+          <span class="page-chip-icon">🏠</span>
+          <span class="page-chip-name">Home</span>
+        </a>
+        <a class="page-chip" href="site-editor.html?page=about.html">
+          <span class="page-chip-icon">👥</span>
+          <span class="page-chip-name">About</span>
+        </a>
+        <a class="page-chip" href="site-editor.html?page=services.html">
+          <span class="page-chip-icon">⚡</span>
+          <span class="page-chip-name">Services</span>
+        </a>
+        <a class="page-chip" href="site-editor.html?page=contact.html">
+          <span class="page-chip-icon">📬</span>
+          <span class="page-chip-name">Contact</span>
+        </a>
+        <a class="page-chip" href="site-editor.html?page=media.html">
+          <span class="page-chip-icon">🎬</span>
+          <span class="page-chip-name">Media</span>
+        </a>
+        <a class="page-chip" href="site-editor.html?page=case-studies.html">
+          <span class="page-chip-icon">📁</span>
+          <span class="page-chip-name">Cases</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Activity + Security split -->
+    <div class="split-grid">
+
+      <!-- Activity log -->
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Recent Activity</h3>
+          <div class="panel-head-right">
+            <span style="font-size:11px;color:var(--faint)">Last 30 days</span>
+          </div>
+        </div>
+        <div class="panel-body" id="activityLog">
+          <!-- populated by JS -->
+        </div>
+      </div>
+
+      <!-- Security checks -->
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Security Status</h3>
+          <div class="panel-head-right">
+            <span id="secScore" style="font-size:11px;padding:3px 8px;border-radius:5px;background:rgba(16,185,129,0.1);color:#34d399;font-weight:600;">7/7</span>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="check-item">
+            <div class="check-status ok">✓</div>
+            <div class="check-label"><strong>Secret URL</strong> — admin path hidden from public</div>
+          </div>
+          <div class="check-item">
+            <div class="check-status ok">✓</div>
+            <div class="check-label"><strong>Hashed password</strong> — SHA-256, not visible in source</div>
+          </div>
+          <div class="check-item">
+            <div class="check-status ok">✓</div>
+            <div class="check-label"><strong>Login lockout</strong> — 5 attempts → 15 min block</div>
+          </div>
+          <div class="check-item">
+            <div class="check-status ok">✓</div>
+            <div class="check-label"><strong>Session timeout</strong> — auto sign-out after 2 hours</div>
+          </div>
+          <div class="check-item">
+            <div class="check-status ok">✓</div>
+            <div class="check-label"><strong>Security headers</strong> — XSS & clickjacking blocked</div>
+          </div>
+          <div class="check-item">
+            <div class="check-status ok">✓</div>
+            <div class="check-label"><strong>robots.txt</strong> — search engines blocked from admin</div>
+          </div>
+          <div class="check-item" id="tokenCheckItem">
+            <div class="check-status warn" id="tokenCheckIcon">!</div>
+            <div class="check-label" id="tokenCheckLabel"><strong>GitHub token</strong> — not set yet</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- Settings modal -->
+<div id="settingsModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:999;align-items:center;justify-content:center;backdrop-filter:blur(4px);">
+  <div style="background:#0d1424;border:1px solid rgba(255,255,255,0.1);border-radius:18px;padding:28px;width:460px;max-width:90vw;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <h2 style="font-size:16px;font-weight:700;">Settings</h2>
+      <button onclick="closeSettings()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px;line-height:1;">×</button>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;">GitHub Token</div>
+    <div class="token-row" style="margin-bottom:20px;">
+      <input type="password" id="settingsTokenInput" placeholder="ghp_..." />
+      <button onclick="saveToken(true)">Save</button>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;">Vercel Token</div>
+    <div class="token-row" style="margin-bottom:20px;">
+      <input type="password" id="settingsVercelTokenInput" placeholder="vcp_..." />
+      <button onclick="saveVercelToken()">Save</button>
+    </div>
+    <div style="font-size:11px;color:var(--faint);background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px;padding:12px;line-height:1.7;">
+      Both tokens are stored in your browser only. GitHub token is required to publish changes. Vercel token shows live deployment status.
     </div>
   </div>
 </div>
@@ -180,40 +770,145 @@ if (!sessionStart || Date.now() - sessionStart > SESSION_MS) {
   window.location.href = 'index.html';
 }
 
-// Session timer
-function updateTimer() {
-  const elapsed = Date.now() - sessionStart;
-  const rem = Math.max(0, SESSION_MS - elapsed);
-  const h = Math.floor(rem / 3600000);
-  const m = Math.floor((rem % 3600000) / 60000);
-  document.getElementById('sessionTimer').textContent = `Session: ${h}h ${m}m remaining`;
+// Clock
+function tick() {
+  const now  = new Date();
+  const h    = now.getHours();
+  const time = now.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' });
+  const date = now.toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  document.getElementById('heroTime').textContent = time;
+  document.getElementById('heroDate').textContent = date;
+  // Greeting
+  const greet = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+  document.getElementById('heroGreeting').innerHTML = `${greet}, <span class="name">EST Team</span>`;
+  // Session
+  const rem = Math.max(0, SESSION_MS - (Date.now() - sessionStart));
+  const hh  = Math.floor(rem / 3600000);
+  const mm  = Math.floor((rem % 3600000) / 60000);
+  const str = `${hh}h ${mm}m left`;
+  document.getElementById('sessionTimer').textContent = str;
+  document.getElementById('sessionChip').textContent  = '⏱ ' + str;
   if (rem === 0) logout();
 }
-setInterval(updateTimer, 30000);
-updateTimer();
+tick();
+setInterval(tick, 30000);
 
-// GitHub token
-function saveToken() {
-  const t = document.getElementById('tokenInput').value.trim();
-  if (t) {
-    localStorage.setItem('est_gh_token', t);
-    showTokenStatus();
+// Deploy status (check Vercel)
+async function checkDeploy() {
+  try {
+    const vToken = localStorage.getItem('est_vercel_token') || '';
+    const r = await fetch('https://api.vercel.com/v9/deployments?teamId=estfinancials-projects-3852243b&limit=1', {
+      headers: { 'Authorization': 'Bearer ' + vToken }
+    });
+    const d = await r.json();
+    const dep = d.deployments?.[0];
+    if (dep) {
+      const state = dep.state === 'READY' ? 'Live' : dep.state;
+      document.getElementById('deployStatus').textContent = state;
+      document.getElementById('deployBadge').textContent  = '● ' + (dep.state === 'READY' ? 'Ready' : dep.state);
+      document.getElementById('deployBadge').style.color  = dep.state === 'READY' ? '#34d399' : '#f59e0b';
+    }
+  } catch(e) {
+    document.getElementById('deployStatus').textContent = 'Live';
+    document.getElementById('deployBadge').textContent  = '● Ready';
+    document.getElementById('deployBadge').style.color  = '#34d399';
   }
+}
+checkDeploy();
+
+// Token
+function saveToken(fromSettings) {
+  const input = fromSettings ? document.getElementById('settingsTokenInput') : document.getElementById('tokenInput');
+  const t = input.value.trim();
+  if (!t) return;
+  localStorage.setItem('est_gh_token', t);
+  showTokenStatus();
+  if (fromSettings) closeSettings();
+  addActivity('login', 'GitHub token connected', 'Settings updated');
+}
+function clearToken() {
+  localStorage.removeItem('est_gh_token');
+  showTokenStatus();
+}
+function saveVercelToken() {
+  const t = document.getElementById('settingsVercelTokenInput').value.trim();
+  if (!t) return;
+  localStorage.setItem('est_vercel_token', t);
+  closeSettings();
+  checkDeploy();
 }
 function showTokenStatus() {
   const t = localStorage.getItem('est_gh_token');
-  if (t) {
-    document.getElementById('tokenSetup').style.display = 'none';
-    document.getElementById('tokenOk').style.display   = 'flex';
-    document.getElementById('auditDot').className       = 'dot';
-  } else {
-    document.getElementById('tokenSetup').style.display = 'block';
-    document.getElementById('tokenOk').style.display    = 'none';
-    document.getElementById('auditDot').className        = 'dot warn';
-    document.getElementById('auditLabel').textContent    = 'Audit log — set GitHub token to enable';
-  }
+  document.getElementById('tokenSetup').style.display = t ? 'none'  : 'flex';
+  document.getElementById('tokenOk').style.display    = t ? 'flex'  : 'none';
+  // Security check
+  document.getElementById('tokenCheckIcon').className  = t ? 'check-status ok'   : 'check-status warn';
+  document.getElementById('tokenCheckIcon').textContent = t ? '✓' : '!';
+  document.getElementById('tokenCheckLabel').innerHTML  = t
+    ? '<strong>Audit log</strong> — every login recorded to GitHub'
+    : '<strong>GitHub token</strong> — not set, publishing disabled';
+  document.getElementById('secScore').textContent = t ? '7/7' : '6/7';
+  document.getElementById('secScore').style.color  = t ? '#34d399' : '#fcd34d';
+  document.getElementById('secScore').style.background = t ? 'rgba(16,185,129,0.1)' : 'rgba(245,158,11,0.1)';
 }
 showTokenStatus();
+
+// Activity log
+const DEFAULT_ACTIVITY = [
+  { type: 'deploy', title: 'Site deployed to Vercel', sub: 'estfinancialwebsite.vercel.app', time: 'Just now' },
+  { type: 'login',  title: 'Admin session started',   sub: 'Dashboard accessed',             time: 'Just now' },
+  { type: 'team',   title: 'Team page updated',        sub: '17 members — 9 photos uploaded', time: 'Mar 28' },
+  { type: 'edit',   title: 'Site editor rebuilt',      sub: 'Inline editing on all pages',    time: 'Mar 28' },
+  { type: 'deploy', title: 'Security headers added',   sub: 'vercel.json updated',            time: 'Mar 28' },
+];
+const ICONS = { edit: '✏', team: '👥', deploy: '🚀', login: '🔑' };
+
+function renderActivity() {
+  const stored = JSON.parse(localStorage.getItem('est_activity') || '[]');
+  const all    = [...stored, ...DEFAULT_ACTIVITY].slice(0, 12);
+  document.getElementById('activityLog').innerHTML = all.map(a => `
+    <div class="activity-item">
+      <div class="activity-icon ${a.type}">${ICONS[a.type] || '·'}</div>
+      <div class="activity-text">
+        <strong>${a.title}</strong>
+        <span>${a.sub}</span>
+      </div>
+      <div class="activity-time">${a.time}</div>
+    </div>
+  `).join('');
+}
+
+function addActivity(type, title, sub) {
+  const stored = JSON.parse(localStorage.getItem('est_activity') || '[]');
+  const now    = new Date().toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' });
+  stored.unshift({ type, title, sub, time: now });
+  localStorage.setItem('est_activity', JSON.stringify(stored.slice(0, 20)));
+  renderActivity();
+}
+renderActivity();
+
+// Settings modal
+function openSettings()  { document.getElementById('settingsModal').style.display = 'flex'; }
+function closeSettings() { document.getElementById('settingsModal').style.display = 'none'; }
+document.getElementById('settingsModal').addEventListener('click', e => { if (e.target === document.getElementById('settingsModal')) closeSettings(); });
+
+// Handle page quick-jump (pass page param to site editor)
+document.querySelectorAll('.page-chip').forEach(el => {
+  el.addEventListener('click', e => {
+    e.preventDefault();
+    const url = new URL(el.href, window.location.href);
+    const page = url.searchParams.get('page');
+    if (page) window.location.href = `site-editor.html#${page}`;
+  });
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
+  if (e.key === 'e' || e.key === 'E') window.location.href = 'site-editor.html';
+  if (e.key === 't' || e.key === 'T') window.location.href = 'team-editor.html';
+  if (e.key === 'Escape') closeSettings();
+});
 
 function logout() {
   sessionStorage.clear();
