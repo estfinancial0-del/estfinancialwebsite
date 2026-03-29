@@ -162,6 +162,25 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 /* ── COLOURS SAVE BAR ── */
 .sticky-bar { position:sticky; bottom:0; background:#fff; border-top:1px solid var(--border); padding:14px 28px; display:none; align-items:center; justify-content:space-between; gap:12px; z-index:5; }
 .sticky-bar.show { display:flex; }
+
+/* ── TEAM CARDS (rectangle, matches live site) ── */
+.t-card { background:#fff; border-radius:var(--radius); overflow:hidden; border:2px solid var(--border); transition:border-color .2s,box-shadow .2s; position:relative; }
+.t-card:hover { border-color:var(--red); box-shadow:0 4px 20px rgba(0,0,0,.1); }
+.t-card-photo { width:100%; height:200px; object-fit:cover; object-position:center top; display:block; }
+.t-card-initials { width:100%; height:200px; background:linear-gradient(135deg,#080f1e,#1a2e5a); display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,.65); font-size:32px; font-weight:700; letter-spacing:1px; }
+.t-card-body { padding:12px 12px 14px; text-align:center; }
+.t-card-name { font-size:.9rem; font-weight:600; color:var(--navy); margin-bottom:3px; }
+.t-card-role { font-size:10.5px; color:var(--red); font-weight:700; text-transform:uppercase; letter-spacing:.05em; }
+.t-card-actions { position:absolute; top:8px; right:8px; display:flex; gap:4px; }
+.t-card-actions button { width:28px; height:28px; border-radius:6px; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:13px; background:rgba(255,255,255,.92); backdrop-filter:blur(4px); transition:all .15s; }
+.t-card-actions .t-edit:hover { background:#1565c0; color:#fff; }
+.t-card-actions .t-del:hover { background:var(--red); color:#fff; }
+
+/* ── POSITION PREVIEW ── */
+.pos-preview-wrap { position:relative; width:100%; height:220px; background:#111; border-radius:8px; overflow:hidden; cursor:crosshair; user-select:none; margin-bottom:10px; }
+.pos-preview-wrap img { width:100%; height:100%; object-fit:cover; pointer-events:none; display:block; }
+.pos-crosshair { position:absolute; width:20px; height:20px; border:2px solid #fff; border-radius:50%; transform:translate(-50%,-50%); pointer-events:none; box-shadow:0 0 0 1px rgba(0,0,0,.5); }
+.pos-hint { font-size:11px; color:var(--muted); text-align:center; margin-bottom:14px; }
 </style>
 </head>
 <body>
@@ -340,16 +359,19 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 
     <!-- TEAM -->
     <div class="panel" id="panel-team">
-      <div class="section-head">
-        <h2>Team Members</h2>
-        <p>Manage your team — add new members, update photos, change job titles.</p>
+      <div class="section-head" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+        <div>
+          <h2>Team Members</h2>
+          <p>Add, edit or remove team members. Upload headshots and adjust photo position.</p>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span class="unsaved-badge" id="team-unsaved" style="display:none;background:#fff3cd;color:#856404;font-size:12px;padding:4px 10px;border-radius:20px;font-weight:600;">Unsaved changes</span>
+          <button class="btn btn-ghost" onclick="openAddMemberModal()">+ Add Member</button>
+          <button class="btn btn-primary" id="team-save-btn" onclick="saveTeamChanges()">Save &amp; Publish</button>
+        </div>
       </div>
-      <div style="background:#fff;border-radius:var(--radius);border:1.5px solid var(--border);padding:32px;text-align:center;">
-        <div style="font-size:40px;margin-bottom:16px;">👥</div>
-        <h3 style="font-size:1.1rem;color:var(--navy);margin-bottom:8px;">Team Editor</h3>
-        <p style="font-size:13px;color:var(--muted);margin-bottom:20px;">The team editor opens in a new tab. Add members, upload headshots, and publish with one click.</p>
-        <a href="team.html" target="_blank" class="btn btn-primary" style="text-decoration:none;">Open Team Editor ↗</a>
-      </div>
+      <div id="team-status" style="display:none;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:16px;"></div>
+      <div id="team-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;"></div>
     </div>
 
     <!-- IMAGES -->
@@ -398,6 +420,77 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 
   </div><!-- /main -->
 </div><!-- /app -->
+
+<!-- TEAM MEMBER MODAL -->
+<div class="modal-overlay" id="member-modal">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header">
+      <h2 id="member-modal-title">Add Team Member</h2>
+      <button class="btn btn-ghost" style="padding:6px 12px;font-size:12px;" onclick="closeMemberModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="margin-bottom:14px;">
+        <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Full Name</label>
+        <input type="text" id="m-name" placeholder="e.g. Paul Hanna" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:15px;outline:none;" />
+      </div>
+      <div style="margin-bottom:14px;">
+        <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">Job Title</label>
+        <input type="text" id="m-role" placeholder="e.g. Chief Executive Officer" style="width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:15px;outline:none;" />
+      </div>
+      <div>
+        <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Photo</label>
+        <div style="display:flex;gap:12px;align-items:center;">
+          <div id="m-photo-prev" style="width:80px;height:80px;border-radius:8px;background:linear-gradient(135deg,#080f1e,#1a2e5a);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.6);font-size:20px;font-weight:700;overflow:hidden;flex-shrink:0;">?</div>
+          <div>
+            <label style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:var(--bg);border:1.5px dashed var(--border);border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;color:var(--text);">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Upload Photo
+              <input type="file" id="m-photo-file" accept="image/*" style="display:none;" onchange="previewMemberPhoto(this)" />
+            </label>
+            <p id="m-photo-name" style="font-size:11px;color:var(--muted);margin-top:5px;"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeMemberModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveMember()">Save Member</button>
+    </div>
+  </div>
+</div>
+
+<!-- IMAGE POSITION MODAL -->
+<div class="modal-overlay" id="pos-modal">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-header">
+      <h2>Adjust Photo Position</h2>
+      <button class="btn btn-ghost" style="padding:6px 12px;font-size:12px;" onclick="closePosModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p class="pos-hint">Click or drag anywhere in the box to set the focal point of the photo.</p>
+      <div class="pos-preview-wrap" id="pos-preview-wrap">
+        <img id="pos-preview-img" src="" alt="" />
+        <div class="pos-crosshair" id="pos-crosshair"></div>
+      </div>
+      <div style="display:flex;gap:16px;">
+        <div style="flex:1;">
+          <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:4px;">HORIZONTAL</label>
+          <input type="range" id="pos-x" min="0" max="100" value="50" style="width:100%;" oninput="updatePosPreview()" />
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);"><span>Left</span><span>Center</span><span>Right</span></div>
+        </div>
+        <div style="flex:1;">
+          <label style="display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:4px;">VERTICAL</label>
+          <input type="range" id="pos-y" min="0" max="100" value="20" style="width:100%;" oninput="updatePosPreview()" />
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);"><span>Top</span><span>Mid</span><span>Bottom</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closePosModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="savePosition()">Apply Position</button>
+    </div>
+  </div>
+</div>
 
 <!-- CROP MODAL -->
 <div class="modal-overlay" id="crop-modal">
@@ -455,8 +548,26 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 
 <script>
 const PASS   = 'est2025admin';
+const panelTitles = { dashboard:'Dashboard', pages:'Edit Pages', team:'Team Members', images:'Images & Photos', colours:'Brand Colours' };
 const REPO   = 'estfinancial0-del/estfinancialwebsite';
 const BRANCH = 'main';
+
+// Team state — declared early so all functions can reference them
+let teamData = [];
+let teamEditingId = null;
+let memberPhotoBase64 = null;
+let memberPhotoFilename = null;
+let memberPhotoUploads = {};
+let teamHasChanges = false;
+let posEditingId = null;
+
+// Images/colours state
+let imagesCache = {};
+let colourValues = {};
+let cssFileSha = null;
+let cropper = null;
+let cropPath = null;
+let cropSha  = null;
 
 // ── INIT ──────────────────────────────────────────────────
 // Token stored once via Settings — not hardcoded here
@@ -471,25 +582,19 @@ function doLogin() {
     document.getElementById('app').style.display = 'block';
     loadColours();
     loadImages();
+    initTeam();
   } else {
     document.getElementById('login-err').style.display = 'block';
   }
 }
-if (sessionStorage.getItem('est_admin') === '1') {
-  document.getElementById('login').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  loadColours();
-  loadImages();
-}
-
-// ── PANELS ───────────────────────────────────────────────
-const panelTitles = { dashboard:'Dashboard', pages:'Edit Pages', team:'Team Members', images:'Images & Photos', colours:'Brand Colours' };
+// ── PANELS ──────────────────────────────────────────────
 function showPanel(id) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('panel-' + id).classList.add('active');
   document.querySelectorAll('.nav-item')[['dashboard','pages','team','images','colours'].indexOf(id)].classList.add('active');
   document.getElementById('panel-title').textContent = panelTitles[id];
+  if (id === 'team' && teamData.length === 0) initTeam();
 }
 
 // ── EDIT PAGE ─────────────────────────────────────────────
@@ -531,7 +636,6 @@ function toast(msg, type='') {
 }
 
 // ── IMAGES ────────────────────────────────────────────────
-let imagesCache = {};
 
 async function loadImages() {
   const grid = document.getElementById('images-grid');
@@ -606,9 +710,6 @@ zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
 zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('drag-over'); handleUpload(e.dataTransfer.files); });
 
 // ── CROPPER ───────────────────────────────────────────────
-let cropper = null;
-let cropPath = null;
-let cropSha  = null;
 
 function openCrop(path, name) {
   cropPath = path;
@@ -658,8 +759,6 @@ const COLOUR_DEFS = [
   { key: '--gold',       label: 'Gold',          desc: 'Star ratings, premium accents' },
   { key: '--off-white',  label: 'Off White',     desc: 'Section backgrounds' },
 ];
-let colourValues = {};
-let cssFileSha   = null;
 
 async function loadColours() {
   try {
@@ -754,6 +853,254 @@ async function saveColours() {
     document.getElementById('colours-save-bar').classList.remove('show');
   } catch(e) { toast('Error: ' + e.message, 'error'); }
   btn.disabled = false; btn.textContent = 'Save & Publish';
+}
+
+// ── TEAM EDITOR ───────────────────────────────────────────
+const DEFAULT_TEAM = [
+  { id:1,  name:'Paul Hanna',        role:'Chief Executive Officer',    photo:null, pos:'50% 20%' },
+  { id:2,  name:'Cassandra Hanna',   role:'QLD General Manager',         photo:null, pos:'50% 20%' },
+  { id:3,  name:'Samuel Hanna',      role:'Operations Manager',          photo:null, pos:'50% 20%' },
+  { id:4,  name:'Michael Gee',       role:'Head of Finance',             photo:'TEam/Michael%20Gee.png', pos:'50% 20%' },
+  { id:5,  name:'Dominic Carbone',   role:'Head of Law',                 photo:null, pos:'50% 20%' },
+  { id:6,  name:'Raphael Bove',      role:'Senior Strategist',           photo:'TEam/Raphael%20Bove.png', pos:'50% 20%' },
+  { id:7,  name:'James Peach',       role:'Asset Acquisition Manager',   photo:null, pos:'50% 20%' },
+  { id:8,  name:'Simon Liddle',      role:'Financial Advisor',           photo:'TEam/Simon%20Liddle.png', pos:'50% 20%' },
+  { id:9,  name:'Jim Calagis',       role:'Financial Needs Analyst',     photo:'TEam/Jim%20Calagis.png', pos:'50% 20%' },
+  { id:10, name:'Umar Khan',         role:'Financial Needs Analyst',     photo:null, pos:'50% 20%' },
+  { id:11, name:'Caitlin Sager',     role:'Paralegal',                   photo:null, pos:'50% 20%' },
+  { id:12, name:'Martin Fiay',       role:'Sales Specialist',            photo:'TEam/Martin%20Fiay.png', pos:'50% 20%' },
+  { id:13, name:'Karim Hallal',      role:'Broker Assistant',            photo:'TEam/Karim%20Hallal.png', pos:'50% 20%' },
+  { id:14, name:'Victoria Holsten',  role:'Client Relationship Manager', photo:'TEam/Victoria%20Holsten.png', pos:'50% 20%' },
+  { id:15, name:'Hans Schmid',       role:'Marketing Strategist',        photo:'TEam/Hans%20Schmid.png', pos:'50% 20%' },
+  { id:16, name:'Justin Immanuelle', role:'Digital Media Designer',      photo:'TEam/Justin%20Immanuelle.png', pos:'50% 20%' },
+];
+
+function initials(name) { return name.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase(); }
+
+function initTeam() {
+  teamData = JSON.parse(JSON.stringify(DEFAULT_TEAM));
+  renderTeamGrid();
+}
+
+function renderTeamGrid() {
+  const grid = document.getElementById('team-grid');
+  if (!grid) return;
+  grid.innerHTML = teamData.map(m => `
+    <div class="t-card">
+      <div class="t-card-actions">
+        <button class="t-edit" title="Edit" onclick="openEditMember(${m.id})">✏️</button>
+        <button class="t-edit" title="Adjust position" onclick="openPosModal(${m.id})" style="font-size:11px;">↕</button>
+        <button class="t-del" title="Remove" onclick="deleteMember(${m.id})">🗑</button>
+      </div>
+      ${m.photo
+        ? `<img class="t-card-photo" src="../images/${m.photo}" alt="${m.name}" style="object-position:${m.pos||'50% 20%'}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" /><div class="t-card-initials" style="display:none">${initials(m.name)}</div>`
+        : `<div class="t-card-initials">${initials(m.name)}</div>`
+      }
+      <div class="t-card-body">
+        <div class="t-card-name">${m.name}</div>
+        <div class="t-card-role">${m.role}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function markTeamChanged() {
+  teamHasChanges = true;
+  document.getElementById('team-unsaved').style.display = 'inline';
+}
+
+// Add/Edit modal
+function openAddMemberModal() {
+  teamEditingId = null;
+  memberPhotoBase64 = null; memberPhotoFilename = null;
+  document.getElementById('member-modal-title').textContent = 'Add Team Member';
+  document.getElementById('m-name').value = '';
+  document.getElementById('m-role').value = '';
+  document.getElementById('m-photo-name').textContent = '';
+  document.getElementById('m-photo-prev').innerHTML = '?';
+  document.getElementById('m-photo-prev').style.background = 'linear-gradient(135deg,#080f1e,#1a2e5a)';
+  document.getElementById('m-photo-file').value = '';
+  document.getElementById('member-modal').classList.add('open');
+}
+function openEditMember(id) {
+  const m = teamData.find(x => x.id === id);
+  teamEditingId = id;
+  memberPhotoBase64 = null; memberPhotoFilename = null;
+  document.getElementById('member-modal-title').textContent = 'Edit Team Member';
+  document.getElementById('m-name').value = m.name;
+  document.getElementById('m-role').value = m.role;
+  document.getElementById('m-photo-name').textContent = '';
+  document.getElementById('m-photo-file').value = '';
+  const prev = document.getElementById('m-photo-prev');
+  if (m.photo) {
+    prev.innerHTML = `<img src="../images/${m.photo}" style="width:100%;height:100%;object-fit:cover;object-position:${m.pos||'50% 20%'}" onerror="this.parentElement.textContent='${initials(m.name)}'" />`;
+  } else {
+    prev.innerHTML = initials(m.name);
+    prev.style.background = 'linear-gradient(135deg,#080f1e,#1a2e5a)';
+  }
+  document.getElementById('member-modal').classList.add('open');
+}
+function closeMemberModal() { document.getElementById('member-modal').classList.remove('open'); }
+
+function previewMemberPhoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    memberPhotoBase64 = e.target.result;
+    memberPhotoFilename = file.name;
+    const prev = document.getElementById('m-photo-prev');
+    prev.innerHTML = `<img src="${memberPhotoBase64}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;" />`;
+    document.getElementById('m-photo-name').textContent = file.name;
+  };
+  reader.readAsDataURL(file);
+}
+
+function saveMember() {
+  const name = document.getElementById('m-name').value.trim();
+  const role = document.getElementById('m-role').value.trim();
+  if (!name || !role) { alert('Please enter name and role.'); return; }
+  if (teamEditingId) {
+    const m = teamData.find(x => x.id === teamEditingId);
+    m.name = name; m.role = role;
+    if (memberPhotoBase64) {
+      memberPhotoUploads[teamEditingId] = { base64: memberPhotoBase64.split(',')[1], filename: memberPhotoFilename };
+      m.photo = 'TEam/' + encodeURIComponent(memberPhotoFilename);
+    }
+  } else {
+    const newId = Date.now();
+    const nm = { id: newId, name, role, photo: null, pos: '50% 20%' };
+    if (memberPhotoBase64) {
+      memberPhotoUploads[newId] = { base64: memberPhotoBase64.split(',')[1], filename: memberPhotoFilename };
+      nm.photo = 'TEam/' + encodeURIComponent(memberPhotoFilename);
+    }
+    teamData.push(nm);
+  }
+  closeMemberModal();
+  renderTeamGrid();
+  markTeamChanged();
+}
+
+function deleteMember(id) {
+  if (!confirm('Remove this team member from the website?')) return;
+  teamData = teamData.filter(m => m.id !== id);
+  renderTeamGrid();
+  markTeamChanged();
+}
+
+// Save to GitHub
+async function saveTeamChanges() {
+  const btn = document.getElementById('team-save-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Publishing…';
+  const statusEl = document.getElementById('team-status');
+  statusEl.style.display = 'block';
+  statusEl.style.background = '#e3f2fd'; statusEl.style.color = '#1565c0';
+  statusEl.textContent = 'Uploading photos and saving…';
+  try {
+    // Upload new photos
+    for (const [id, up] of Object.entries(memberPhotoUploads)) {
+      const path = 'images/TEam/' + up.filename;
+      let sha = null;
+      try { const d = await ghGet(path); sha = d.sha; } catch(e){}
+      await ghPut(path, up.base64, sha, 'Upload team photo: ' + up.filename);
+    }
+    memberPhotoUploads = {};
+    // Build new team HTML and replace in about.html
+    const fileData = await ghGet('about.html');
+    let html = fromBase64(fileData.content);
+    const teamHTML = teamData.map(m => {
+      if (m.photo) {
+        return `        <div class="team-card">\n          <img class="team-photo" src="images/${m.photo}" alt="${m.name}" style="object-position:${m.pos||'50% 20%'}" />\n          <div class="team-info"><h3>${m.name}</h3><p class="team-role">${m.role}</p></div>\n        </div>`;
+      } else {
+        return `        <div class="team-card">\n          <div class="team-avatar">${initials(m.name)}</div>\n          <div class="team-info"><h3>${m.name}</h3><p class="team-role">${m.role}</p></div>\n        </div>`;
+      }
+    }).join('\n');
+    html = html.replace(
+      /(<div class="team-grid">)([\s\S]*?)(<\/div>\s*<\/div>\s*<\/section>\s*<!-- VALUES -->)/,
+      `$1\n${teamHTML}\n      $3`
+    );
+    await ghPut('about.html', toBase64(html), fileData.sha, 'Update team via admin editor');
+    statusEl.style.background = '#e8f5e9'; statusEl.style.color = '#2e7d32';
+    statusEl.textContent = '✓ Team published! Live in ~30 seconds.';
+    teamHasChanges = false;
+    document.getElementById('team-unsaved').style.display = 'none';
+    setTimeout(() => { statusEl.style.display = 'none'; }, 4000);
+  } catch(e) {
+    statusEl.style.background = '#fdecea'; statusEl.style.color = '#c62828';
+    statusEl.textContent = 'Error: ' + e.message;
+  }
+  btn.disabled = false; btn.textContent = 'Save & Publish';
+}
+
+// ── IMAGE POSITION ────────────────────────────────────────
+function openPosModal(id) {
+  const m = teamData.find(x => x.id === id);
+  if (!m || !m.photo) { toast('No photo uploaded yet — upload a photo first.', 'error'); return; }
+  posEditingId = id;
+  const img = document.getElementById('pos-preview-img');
+  img.src = '../images/' + m.photo + '?t=' + Date.now();
+  img.style.objectPosition = m.pos || '50% 20%';
+  const [px, py] = (m.pos || '50% 20%').split(' ');
+  document.getElementById('pos-x').value = parseInt(px);
+  document.getElementById('pos-y').value = parseInt(py);
+  updatePosPreview();
+  document.getElementById('pos-modal').classList.add('open');
+  setupPosDrag();
+}
+
+function closePosModal() {
+  document.getElementById('pos-modal').classList.remove('open');
+}
+
+function updatePosPreview() {
+  const x = document.getElementById('pos-x').value;
+  const y = document.getElementById('pos-y').value;
+  const img = document.getElementById('pos-preview-img');
+  img.style.objectPosition = `${x}% ${y}%`;
+  const wrap = document.getElementById('pos-preview-wrap');
+  const ch = document.getElementById('pos-crosshair');
+  ch.style.left = (x / 100 * wrap.offsetWidth) + 'px';
+  ch.style.top  = (y / 100 * wrap.offsetHeight) + 'px';
+}
+
+function setupPosDrag() {
+  const wrap = document.getElementById('pos-preview-wrap');
+  function setFromEvent(e) {
+    const rect = wrap.getBoundingClientRect();
+    const cx = e.touches ? e.touches[0].clientX : e.clientX;
+    const cy = e.touches ? e.touches[0].clientY : e.clientY;
+    const x = Math.max(0, Math.min(100, Math.round((cx - rect.left) / rect.width * 100)));
+    const y = Math.max(0, Math.min(100, Math.round((cy - rect.top) / rect.height * 100)));
+    document.getElementById('pos-x').value = x;
+    document.getElementById('pos-y').value = y;
+    updatePosPreview();
+  }
+  let dragging = false;
+  wrap.onmousedown = (e) => { dragging = true; setFromEvent(e); };
+  wrap.ontouchstart = (e) => { dragging = true; setFromEvent(e); };
+  window.onmousemove = (e) => { if (dragging) setFromEvent(e); };
+  window.ontouchmove = (e) => { if (dragging) setFromEvent(e); };
+  window.onmouseup = () => { dragging = false; };
+  window.ontouchend = () => { dragging = false; };
+}
+
+function savePosition() {
+  const x = document.getElementById('pos-x').value;
+  const y = document.getElementById('pos-y').value;
+  const m = teamData.find(x2 => x2.id === posEditingId);
+  if (m) { m.pos = `${x}% ${y}%`; }
+  closePosModal();
+  renderTeamGrid();
+  markTeamChanged();
+}
+
+// ── BOOT — runs after all declarations ────────────────────
+if (sessionStorage.getItem('est_admin') === '1') {
+  document.getElementById('login').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  loadColours();
+  loadImages();
+  initTeam();
 }
 </script>
 </body>
