@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>EST Admin — Site Editor</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #0d1526; color: white; height: 100vh; display: flex; flex-direction: column; }
+
+    /* Topbar */
+    .topbar {
+      background: #111827; border-bottom: 1px solid rgba(255,255,255,0.07);
+      padding: 0 1.5rem; height: 56px; flex-shrink: 0;
+      display: flex; align-items: center; gap: 1rem;
+    }
+    .topbar a { color: rgba(255,255,255,0.4); font-size: 13px; text-decoration: none; }
+    .topbar a:hover { color: white; }
+    .topbar-sep { color: rgba(255,255,255,0.15); }
+    .topbar h1 { font-size: 14px; font-weight: 600; color: white; flex: 1; }
+    .page-select {
+      padding: 6px 12px; background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12); border-radius: 7px;
+      color: white; font-family: inherit; font-size: 13px;
+      outline: none; cursor: pointer;
+    }
+    .btn { padding: 7px 18px; border-radius: 7px; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; }
+    .btn-save { background: #e5291f; color: white; }
+    .btn-save:hover { background: #c9221a; }
+    .btn-save:disabled { background: #555; cursor: not-allowed; }
+    .btn-preview { background: rgba(255,255,255,0.08); color: white; }
+    .btn-preview:hover { background: rgba(255,255,255,0.14); }
+
+    /* Layout */
+    .editor-layout { display: flex; flex: 1; overflow: hidden; }
+
+    /* Sidebar */
+    .sidebar {
+      width: 380px; flex-shrink: 0;
+      background: #111827; border-right: 1px solid rgba(255,255,255,0.07);
+      overflow-y: auto;
+    }
+    .sidebar-inner { padding: 1.25rem; }
+    .status-bar {
+      padding: 8px 12px; border-radius: 8px; font-size: 12px; margin-bottom: 1rem;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .status-bar.loading { background: rgba(99,102,241,0.12); color: #a5b4fc; }
+    .status-bar.loaded  { background: rgba(34,197,94,0.1);   color: #86efac; }
+    .status-bar.saving  { background: rgba(234,179,8,0.1);   color: #fde047; }
+    .status-bar.saved   { background: rgba(34,197,94,0.1);   color: #86efac; }
+    .status-bar.error   { background: rgba(229,41,31,0.1);   color: #f87171; }
+
+    .section-group { margin-bottom: 1.5rem; }
+    .section-group-title {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+      color: rgba(255,255,255,0.25); margin-bottom: 0.75rem; padding-bottom: 6px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .field { margin-bottom: 0.75rem; }
+    .field label { display: block; font-size: 11px; color: rgba(255,255,255,0.45); margin-bottom: 4px; font-weight: 500; }
+    .field input, .field textarea {
+      width: 100%; padding: 8px 10px;
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 7px; color: white; font-family: inherit; font-size: 13px;
+      outline: none; resize: vertical; transition: border-color 0.2s;
+    }
+    .field input:focus, .field textarea:focus { border-color: #e5291f; background: rgba(255,255,255,0.07); }
+    .field textarea { min-height: 70px; }
+    .field input.changed, .field textarea.changed { border-color: #fde047; }
+
+    /* Preview frame */
+    .preview-wrap { flex: 1; overflow: hidden; position: relative; background: #f5f5f5; }
+    #previewFrame {
+      width: 100%; height: 100%; border: none;
+      transform-origin: top left;
+    }
+    .preview-overlay {
+      position: absolute; inset: 0;
+      background: rgba(13,21,38,0.7);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; color: rgba(255,255,255,0.6);
+    }
+    .no-token-warn {
+      background: rgba(234,179,8,0.1); border: 1px solid rgba(234,179,8,0.25);
+      border-radius: 10px; padding: 10px 14px;
+      color: #fde047; font-size: 12px; margin-bottom: 1rem; display: none;
+    }
+    .changes-count {
+      font-size: 11px; color: rgba(255,255,255,0.35);
+      margin-bottom: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+<!-- Topbar -->
+<div class="topbar">
+  <a href="dashboard.html">← Dashboard</a>
+  <span class="topbar-sep">/</span>
+  <h1>Edit Website Text</h1>
+  <select class="page-select" id="pageSelect" onchange="loadPage()">
+    <option value="index.html">🏠 Home</option>
+    <option value="services.html">⚙ Services</option>
+    <option value="about.html">👥 About</option>
+    <option value="media.html">🎬 Media</option>
+    <option value="case-studies.html">📋 Case Studies</option>
+    <option value="contact.html">📞 Contact</option>
+  </select>
+  <button class="btn btn-preview" onclick="refreshPreview()">↺ Refresh Preview</button>
+  <button class="btn btn-save" id="saveBtn" onclick="saveChanges()">💾 Save &amp; Publish</button>
+</div>
+
+<div class="editor-layout">
+  <!-- Sidebar: editable fields -->
+  <div class="sidebar">
+    <div class="sidebar-inner">
+      <div class="no-token-warn" id="noTokenWarn">⚠ Add GitHub token in Dashboard to publish changes.</div>
+      <div class="status-bar loading" id="statusBar">⏳ Select a page to start editing…</div>
+      <div class="changes-count" id="changesCount"></div>
+      <div id="fieldsContainer"></div>
+    </div>
+  </div>
+
+  <!-- Preview -->
+  <div class="preview-wrap">
+    <div class="preview-overlay" id="previewOverlay">Select a page to preview →</div>
+    <iframe id="previewFrame" title="Page Preview"></iframe>
+  </div>
+</div>
+
+<script>
+const SESSION_MS   = 2 * 60 * 60 * 1000;
+const GITHUB_REPO  = 'estfinancial0-del/estfinancialwebsite';
+
+// Auth guard
+if (!sessionStorage.getItem('est_session') || Date.now() - parseInt(sessionStorage.getItem('est_session')) > SESSION_MS) {
+  window.location.href = 'index.html';
+}
+
+// Token check
+const ghToken = localStorage.getItem('est_gh_token');
+if (!ghToken) document.getElementById('noTokenWarn').style.display = 'block';
+
+let currentHTML = '';
+let currentPage = '';
+let changedFields = new Set();
+
+// ── Load page from GitHub ─────────────────────────────────────────
+async function loadPage() {
+  const page = document.getElementById('pageSelect').value;
+  currentPage = page;
+  changedFields.clear();
+  setStatus('loading', '⏳ Loading ' + page + '…');
+  document.getElementById('fieldsContainer').innerHTML = '';
+  document.getElementById('changesCount').textContent = '';
+
+  try {
+    // Fetch directly from same origin (works in preview + production)
+    const resp = await fetch('../' + page + '?_=' + Date.now());
+    currentHTML = await resp.text();
+    parseAndRenderFields(currentHTML);
+    refreshPreview();
+    setStatus('loaded', '✓ Loaded — click any field to edit');
+  } catch(e) {
+    setStatus('error', '✗ Could not load page: ' + e.message);
+  }
+}
+
+// ── Parse HTML & extract editable fields ─────────────────────────
+function parseAndRenderFields(html) {
+  const parser = new DOMParser();
+  const doc    = parser.parseFromString(html, 'text/html');
+  const container = document.getElementById('fieldsContainer');
+  container.innerHTML = '';
+
+  // Define what to extract — selector, label, group
+  const schema = [
+    { group: 'Hero / Page Header', items: [
+      { sel: '.hero-eyebrow, .page-eyebrow, .eyebrow', label: 'Eyebrow text', multi: true },
+      { sel: '.hero-title, .page-hero h1, h1', label: 'Main heading', multi: false },
+      { sel: '.hero-sub, .page-hero p, .hero p', label: 'Hero subtext', multi: false, ta: true },
+    ]},
+    { group: 'Stats / Numbers', items: [
+      { sel: '.stat-value', label: 'Stat value', multi: true },
+      { sel: '.stat-label', label: 'Stat label',  multi: true },
+    ]},
+    { group: 'Section Headings', items: [
+      { sel: '.section-header h2', label: 'Section heading', multi: true },
+      { sel: '.section-header .section-sub', label: 'Section subtext', multi: true, ta: true },
+    ]},
+    { group: 'Body Content', items: [
+      { sel: 'main p:not(.eyebrow):not(.section-sub):not(.hero-sub):not(.form-note):not(.team-role)', label: 'Paragraph', multi: true, ta: true },
+    ]},
+    { group: 'Buttons & CTAs', items: [
+      { sel: '.btn-primary, .btn-cta, .cta-section .btn', label: 'Button text', multi: true },
+    ]},
+  ];
+
+  let fieldIndex = 0;
+
+  schema.forEach(group => {
+    let hasAny = false;
+    const groupEl = document.createElement('div');
+    groupEl.className = 'section-group';
+    const titleEl = document.createElement('div');
+    titleEl.className = 'section-group-title';
+    titleEl.textContent = group.group;
+    groupEl.appendChild(titleEl);
+
+    group.items.forEach(item => {
+      const els = doc.querySelectorAll(item.sel);
+      if (!els.length) return;
+
+      const nodes = item.multi ? Array.from(els) : [els[0]];
+      nodes.forEach((el, idx) => {
+        const text = el.textContent.trim();
+        if (!text || text.length < 2) return;
+
+        hasAny = true;
+        const fid = 'f' + fieldIndex++;
+        el.setAttribute('data-fid', fid);
+
+        const fieldEl = document.createElement('div');
+        fieldEl.className = 'field';
+        const labelText = nodes.length > 1 ? `${item.label} ${idx+1}` : item.label;
+        fieldEl.innerHTML = `<label>${labelText}</label>`;
+
+        if (item.ta || text.length > 80) {
+          const ta = document.createElement('textarea');
+          ta.id = fid; ta.value = text;
+          ta.addEventListener('input', () => markChanged(fid, ta));
+          fieldEl.appendChild(ta);
+        } else {
+          const inp = document.createElement('input');
+          inp.type = 'text'; inp.id = fid; inp.value = text;
+          inp.addEventListener('input', () => markChanged(fid, inp));
+          fieldEl.appendChild(inp);
+        }
+        groupEl.appendChild(fieldEl);
+      });
+    });
+
+    if (hasAny) container.appendChild(groupEl);
+  });
+
+  if (!fieldIndex) {
+    container.innerHTML = '<p style="color:rgba(255,255,255,0.3);font-size:13px;padding:1rem 0;">No editable fields found on this page.</p>';
+  }
+
+  // Store fid → element mapping
+  window._fidMap = {};
+  doc.querySelectorAll('[data-fid]').forEach(el => {
+    window._fidMap[el.getAttribute('data-fid')] = { selector: el.tagName.toLowerCase() + (el.className ? '.' + el.className.split(' ')[0] : ''), originalText: el.textContent.trim() };
+  });
+}
+
+function markChanged(fid, el) {
+  changedFields.add(fid);
+  el.classList.add('changed');
+  document.getElementById('changesCount').textContent = `${changedFields.size} unsaved change${changedFields.size !== 1 ? 's' : ''}`;
+}
+
+// ── Save to GitHub ─────────────────────────────────────────────────
+async function saveChanges() {
+  if (!ghToken) { alert('Add your GitHub token in the Dashboard first.'); return; }
+  if (!currentHTML) { alert('Load a page first.'); return; }
+
+  setStatus('saving', '⏳ Publishing changes…');
+  document.getElementById('saveBtn').disabled = true;
+
+  // Apply all field values to a fresh DOM parse
+  const parser = new DOMParser();
+  const doc    = parser.parseFromString(currentHTML, 'text/html');
+  let fieldIndex = 0;
+
+  const schema = [
+    { items: [
+      { sel: '.hero-eyebrow, .page-eyebrow, .eyebrow', multi: true },
+      { sel: '.hero-title, .page-hero h1, h1', multi: false },
+      { sel: '.hero-sub, .page-hero p, .hero p', multi: false },
+    ]},
+    { items: [
+      { sel: '.stat-value', multi: true },
+      { sel: '.stat-label', multi: true },
+    ]},
+    { items: [
+      { sel: '.section-header h2', multi: true },
+      { sel: '.section-header .section-sub', multi: true },
+    ]},
+    { items: [
+      { sel: 'main p:not(.eyebrow):not(.section-sub):not(.hero-sub):not(.form-note):not(.team-role)', multi: true },
+    ]},
+    { items: [
+      { sel: '.btn-primary, .btn-cta, .cta-section .btn', multi: true },
+    ]},
+  ];
+
+  schema.forEach(group => {
+    group.items.forEach(item => {
+      const els = doc.querySelectorAll(item.sel);
+      if (!els.length) return;
+      const nodes = item.multi ? Array.from(els) : [els[0]];
+      nodes.forEach(el => {
+        const text = el.textContent.trim();
+        if (!text || text.length < 2) return;
+        const fid = 'f' + fieldIndex++;
+        const input = document.getElementById(fid);
+        if (input && changedFields.has(fid)) {
+          el.textContent = input.value;
+        }
+      });
+    });
+  });
+
+  const newHTML = '<!DOCTYPE html>\n' + doc.documentElement.outerHTML;
+
+  try {
+    // Get current SHA
+    const metaResp = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${currentPage}`, {
+      headers: { 'Authorization': `token ${ghToken}` }
+    });
+    const meta = await metaResp.json();
+
+    // Push update
+    const pushResp = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${currentPage}`, {
+      method: 'PUT',
+      headers: { 'Authorization': `token ${ghToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: `📝 Update ${currentPage} content via admin panel`,
+        content: btoa(unescape(encodeURIComponent(newHTML))),
+        sha: meta.sha
+      })
+    });
+
+    if (pushResp.ok) {
+      currentHTML = newHTML;
+      changedFields.clear();
+      document.querySelectorAll('.changed').forEach(el => el.classList.remove('changed'));
+      document.getElementById('changesCount').textContent = '';
+      setStatus('saved', '✓ Published! Live in ~30 seconds on Vercel.');
+    } else {
+      const err = await pushResp.json();
+      setStatus('error', '✗ GitHub error: ' + (err.message || pushResp.status));
+    }
+  } catch(e) {
+    setStatus('error', '✗ Error: ' + e.message);
+  }
+
+  document.getElementById('saveBtn').disabled = false;
+}
+
+// ── Preview ───────────────────────────────────────────────────────
+function refreshPreview() {
+  const page = document.getElementById('pageSelect').value;
+  const frame = document.getElementById('previewFrame');
+  frame.src = '../' + page + '?preview=' + Date.now();
+  document.getElementById('previewOverlay').style.display = 'none';
+}
+
+// ── Status ────────────────────────────────────────────────────────
+function setStatus(type, msg) {
+  const el = document.getElementById('statusBar');
+  el.className = 'status-bar ' + type;
+  el.textContent = msg;
+}
+</script>
+</body>
+</html>
