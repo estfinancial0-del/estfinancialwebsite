@@ -1,370 +1,295 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="robots" content="noindex, nofollow" />
-  <title>EST Admin — Site Editor</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Inter', sans-serif; background: #0d1526; color: white; height: 100vh; display: flex; flex-direction: column; }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>EST Site Editor</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0d1117; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
-    /* Topbar */
-    .topbar {
-      background: #111827; border-bottom: 1px solid rgba(255,255,255,0.07);
-      padding: 0 1.5rem; height: 56px; flex-shrink: 0;
-      display: flex; align-items: center; gap: 1rem;
-    }
-    .topbar a { color: rgba(255,255,255,0.4); font-size: 13px; text-decoration: none; }
-    .topbar a:hover { color: white; }
-    .topbar-sep { color: rgba(255,255,255,0.15); }
-    .topbar h1 { font-size: 14px; font-weight: 600; color: white; flex: 1; }
-    .page-select {
-      padding: 6px 12px; background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.12); border-radius: 7px;
-      color: white; font-family: inherit; font-size: 13px;
-      outline: none; cursor: pointer;
-    }
-    .btn { padding: 7px 18px; border-radius: 7px; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; }
-    .btn-save { background: #e5291f; color: white; }
-    .btn-save:hover { background: #c9221a; }
-    .btn-save:disabled { background: #555; cursor: not-allowed; }
-    .btn-preview { background: rgba(255,255,255,0.08); color: white; }
-    .btn-preview:hover { background: rgba(255,255,255,0.14); }
+  #toolbar {
+    height: 54px; background: #161b22; border-bottom: 1px solid rgba(255,255,255,0.08);
+    display: flex; align-items: center; gap: 10px; padding: 0 16px; flex-shrink: 0;
+  }
+  .toolbar-logo { font-size: 13px; font-weight: 700; color: white; letter-spacing: -0.3px; }
+  .toolbar-logo span { color: #e5291f; }
+  .divider { width: 1px; height: 22px; background: rgba(255,255,255,0.1); margin: 0 4px; }
 
-    /* Layout */
-    .editor-layout { display: flex; flex: 1; overflow: hidden; }
+  #pageSelect {
+    background: #21262d; border: 1px solid rgba(255,255,255,0.1); color: white;
+    padding: 6px 10px; border-radius: 7px; font-family: inherit; font-size: 13px;
+    cursor: pointer; outline: none; min-width: 160px;
+  }
 
-    /* Sidebar */
-    .sidebar {
-      width: 380px; flex-shrink: 0;
-      background: #111827; border-right: 1px solid rgba(255,255,255,0.07);
-      overflow-y: auto;
-    }
-    .sidebar-inner { padding: 1.25rem; }
-    .status-bar {
-      padding: 8px 12px; border-radius: 8px; font-size: 12px; margin-bottom: 1rem;
-      display: flex; align-items: center; gap: 6px;
-    }
-    .status-bar.loading { background: rgba(99,102,241,0.12); color: #a5b4fc; }
-    .status-bar.loaded  { background: rgba(34,197,94,0.1);   color: #86efac; }
-    .status-bar.saving  { background: rgba(234,179,8,0.1);   color: #fde047; }
-    .status-bar.saved   { background: rgba(34,197,94,0.1);   color: #86efac; }
-    .status-bar.error   { background: rgba(229,41,31,0.1);   color: #f87171; }
+  #editToggle {
+    padding: 7px 14px; border-radius: 7px; border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.7);
+    font-family: inherit; font-size: 13px; cursor: pointer; transition: all 0.15s;
+  }
+  #editToggle.active { background: rgba(229,41,31,0.15); border-color: rgba(229,41,31,0.4); color: #f87171; }
+  #editToggle:hover { background: rgba(255,255,255,0.1); color: white; }
 
-    .section-group { margin-bottom: 1.5rem; }
-    .section-group-title {
-      font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
-      color: rgba(255,255,255,0.25); margin-bottom: 0.75rem; padding-bottom: 6px;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-    }
-    .field { margin-bottom: 0.75rem; }
-    .field label { display: block; font-size: 11px; color: rgba(255,255,255,0.45); margin-bottom: 4px; font-weight: 500; }
-    .field input, .field textarea {
-      width: 100%; padding: 8px 10px;
-      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 7px; color: white; font-family: inherit; font-size: 13px;
-      outline: none; resize: vertical; transition: border-color 0.2s;
-    }
-    .field input:focus, .field textarea:focus { border-color: #e5291f; background: rgba(255,255,255,0.07); }
-    .field textarea { min-height: 70px; }
-    .field input.changed, .field textarea.changed { border-color: #fde047; }
+  #saveBtn {
+    padding: 7px 16px; border-radius: 7px; border: none;
+    background: #e5291f; color: white; font-family: inherit; font-size: 13px;
+    font-weight: 600; cursor: pointer; transition: all 0.15s; margin-left: auto;
+  }
+  #saveBtn:hover { background: #c8241a; }
+  #saveBtn:disabled { background: rgba(229,41,31,0.3); cursor: not-allowed; }
 
-    /* Preview frame */
-    .preview-wrap { flex: 1; overflow: hidden; position: relative; background: #f5f5f5; }
-    #previewFrame {
-      width: 100%; height: 100%; border: none;
-      transform-origin: top left;
-    }
-    .preview-overlay {
-      position: absolute; inset: 0;
-      background: rgba(13,21,38,0.7);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 15px; color: rgba(255,255,255,0.6);
-    }
-    .no-token-warn {
-      background: rgba(234,179,8,0.1); border: 1px solid rgba(234,179,8,0.25);
-      border-radius: 10px; padding: 10px 14px;
-      color: #fde047; font-size: 12px; margin-bottom: 1rem; display: none;
-    }
-    .changes-count {
-      font-size: 11px; color: rgba(255,255,255,0.35);
-      margin-bottom: 0.5rem;
-    }
-  </style>
+  #status { font-size: 12px; color: rgba(255,255,255,0.35); white-space: nowrap; }
+  #status.ok   { color: #3fb950; }
+  #status.err  { color: #f85149; }
+  #status.busy { color: #e3b341; }
+
+  .back-btn {
+    padding: 6px 10px; border-radius: 7px; border: 1px solid rgba(255,255,255,0.08);
+    background: none; color: rgba(255,255,255,0.4); font-family: inherit; font-size: 12px;
+    cursor: pointer; text-decoration: none; display: flex; align-items: center; gap: 4px;
+  }
+  .back-btn:hover { color: white; border-color: rgba(255,255,255,0.2); }
+
+  #editHint {
+    display: none; height: 32px; background: rgba(229,41,31,0.07);
+    border-bottom: 1px solid rgba(229,41,31,0.18);
+    align-items: center; justify-content: center;
+    font-size: 12px; color: rgba(255,255,255,0.45); flex-shrink: 0;
+  }
+  #editHint.show { display: flex; }
+  #editHint strong { color: rgba(255,255,255,0.7); }
+
+  #frame { flex: 1; border: none; width: 100%; background: white; }
+</style>
 </head>
 <body>
-<!-- Topbar -->
-<div class="topbar">
-  <a href="dashboard.html">← Dashboard</a>
-  <span class="topbar-sep">/</span>
-  <h1>Edit Website Text</h1>
-  <select class="page-select" id="pageSelect" onchange="loadPage()">
-    <option value="index.html">🏠 Home</option>
-    <option value="services.html">⚙ Services</option>
-    <option value="about.html">👥 About</option>
-    <option value="media.html">🎬 Media</option>
-    <option value="case-studies.html">📋 Case Studies</option>
-    <option value="contact.html">📞 Contact</option>
+
+<div id="toolbar">
+  <a class="back-btn" href="dashboard.html">← Back</a>
+  <div class="divider"></div>
+  <span class="toolbar-logo"><span>est.</span> Site Editor</span>
+  <div class="divider"></div>
+
+  <select id="pageSelect" onchange="loadPage(this.value)">
+    <option value="../index.html">🏠 Home</option>
+    <option value="../about.html">👥 About</option>
+    <option value="../services.html">⚡ Services</option>
+    <option value="../contact.html">📬 Contact</option>
+    <option value="../media.html">🎬 Media</option>
+    <option value="../case-studies.html">📁 Case Studies</option>
   </select>
-  <button class="btn btn-preview" onclick="refreshPreview()">↺ Refresh Preview</button>
-  <button class="btn btn-save" id="saveBtn" onclick="saveChanges()">💾 Save &amp; Publish</button>
+
+  <button id="editToggle" onclick="toggleEdit()">✏ Edit Mode</button>
+  <span id="status">Loading…</span>
+  <button id="saveBtn" onclick="saveChanges()" disabled>💾 Save &amp; Publish</button>
 </div>
 
-<div class="editor-layout">
-  <!-- Sidebar: editable fields -->
-  <div class="sidebar">
-    <div class="sidebar-inner">
-      <div class="no-token-warn" id="noTokenWarn">⚠ Add GitHub token in Dashboard to publish changes.</div>
-      <div class="status-bar loading" id="statusBar">⏳ Select a page to start editing…</div>
-      <div class="changes-count" id="changesCount"></div>
-      <div id="fieldsContainer"></div>
-    </div>
-  </div>
-
-  <!-- Preview -->
-  <div class="preview-wrap">
-    <div class="preview-overlay" id="previewOverlay">Select a page to preview →</div>
-    <iframe id="previewFrame" title="Page Preview"></iframe>
-  </div>
+<div id="editHint">
+  <strong>Click any text</strong>&nbsp;to edit &nbsp;·&nbsp; <strong>Click any image</strong>&nbsp;to replace it &nbsp;·&nbsp; Press&nbsp;<strong>Esc</strong>&nbsp;to stop editing &nbsp;·&nbsp; <strong>⌘S / Ctrl+S</strong>&nbsp;to save
 </div>
+
+<iframe id="frame"></iframe>
+<input type="file" id="imgPicker" accept="image/*" style="display:none" />
 
 <script>
-const SESSION_MS   = 2 * 60 * 60 * 1000;
-const GITHUB_REPO  = 'estfinancial0-del/estfinancialwebsite';
+const SESSION_MS  = 2 * 60 * 60 * 1000;
+const GITHUB_REPO = 'estfinancial0-del/estfinancialwebsite';
+const GITHUB_API  = `https://api.github.com/repos/${GITHUB_REPO}/contents`;
 
-// Auth guard
 if (!sessionStorage.getItem('est_session') || Date.now() - parseInt(sessionStorage.getItem('est_session')) > SESSION_MS) {
   window.location.href = 'index.html';
 }
 
-// Token check
-const ghToken = localStorage.getItem('est_gh_token');
-if (!ghToken) document.getElementById('noTokenWarn').style.display = 'block';
+const ghToken    = localStorage.getItem('est_gh_token');
+const frame      = document.getElementById('frame');
+const editToggle = document.getElementById('editToggle');
+const saveBtn    = document.getElementById('saveBtn');
+const statusEl   = document.getElementById('status');
+const editHint   = document.getElementById('editHint');
 
-let currentHTML = '';
-let currentPage = '';
-let changedFields = new Set();
+let editMode    = false;
+let currentPage = null;
+let targetImg   = null;
 
-// ── Load page from GitHub ─────────────────────────────────────────
-async function loadPage() {
-  const page = document.getElementById('pageSelect').value;
-  currentPage = page;
-  changedFields.clear();
-  setStatus('loading', '⏳ Loading ' + page + '…');
-  document.getElementById('fieldsContainer').innerHTML = '';
-  document.getElementById('changesCount').textContent = '';
-
-  try {
-    // Fetch directly from same origin (works in preview + production)
-    const resp = await fetch('../' + page + '?_=' + Date.now());
-    currentHTML = await resp.text();
-    parseAndRenderFields(currentHTML);
-    refreshPreview();
-    setStatus('loaded', '✓ Loaded — click any field to edit');
-  } catch(e) {
-    setStatus('error', '✗ Could not load page: ' + e.message);
-  }
+// ── Load page ──────────────────────────────────────────────────────────
+function loadPage(src) {
+  currentPage = src;
+  editMode    = false;
+  updateEditUI();
+  saveBtn.disabled = true;
+  setStatus('Loading…', 'busy');
+  frame.src = src;
 }
 
-// ── Parse HTML & extract editable fields ─────────────────────────
-function parseAndRenderFields(html) {
-  const parser = new DOMParser();
-  const doc    = parser.parseFromString(html, 'text/html');
-  const container = document.getElementById('fieldsContainer');
-  container.innerHTML = '';
+frame.addEventListener('load', () => {
+  setStatus('Ready', '');
+  saveBtn.disabled = false;
+  if (editMode) inject();
+});
 
-  // Define what to extract — selector, label, group
-  const schema = [
-    { group: 'Hero / Page Header', items: [
-      { sel: '.hero-eyebrow, .page-eyebrow, .eyebrow', label: 'Eyebrow text', multi: true },
-      { sel: '.hero-title, .page-hero h1, h1', label: 'Main heading', multi: false },
-      { sel: '.hero-sub, .page-hero p, .hero p', label: 'Hero subtext', multi: false, ta: true },
-    ]},
-    { group: 'Stats / Numbers', items: [
-      { sel: '.stat-value', label: 'Stat value', multi: true },
-      { sel: '.stat-label', label: 'Stat label',  multi: true },
-    ]},
-    { group: 'Section Headings', items: [
-      { sel: '.section-header h2', label: 'Section heading', multi: true },
-      { sel: '.section-header .section-sub', label: 'Section subtext', multi: true, ta: true },
-    ]},
-    { group: 'Body Content', items: [
-      { sel: 'main p:not(.eyebrow):not(.section-sub):not(.hero-sub):not(.form-note):not(.team-role)', label: 'Paragraph', multi: true, ta: true },
-    ]},
-    { group: 'Buttons & CTAs', items: [
-      { sel: '.btn-primary, .btn-cta, .cta-section .btn', label: 'Button text', multi: true },
-    ]},
-  ];
+// ── Edit mode toggle ───────────────────────────────────────────────────
+function toggleEdit() {
+  if (!currentPage) return;
+  editMode = !editMode;
+  updateEditUI();
+  if (editMode) inject(); else eject();
+}
 
-  let fieldIndex = 0;
+function updateEditUI() {
+  editToggle.classList.toggle('active', editMode);
+  editToggle.textContent = editMode ? '⏹ Stop Editing' : '✏ Edit Mode';
+  editHint.classList.toggle('show', editMode);
+}
 
-  schema.forEach(group => {
-    let hasAny = false;
-    const groupEl = document.createElement('div');
-    groupEl.className = 'section-group';
-    const titleEl = document.createElement('div');
-    titleEl.className = 'section-group-title';
-    titleEl.textContent = group.group;
-    groupEl.appendChild(titleEl);
+// ── Inject editing into iframe ─────────────────────────────────────────
+function inject() {
+  const doc = frame.contentDocument;
+  if (!doc) return;
 
-    group.items.forEach(item => {
-      const els = doc.querySelectorAll(item.sel);
-      if (!els.length) return;
-
-      const nodes = item.multi ? Array.from(els) : [els[0]];
-      nodes.forEach((el, idx) => {
-        const text = el.textContent.trim();
-        if (!text || text.length < 2) return;
-
-        hasAny = true;
-        const fid = 'f' + fieldIndex++;
-        el.setAttribute('data-fid', fid);
-
-        const fieldEl = document.createElement('div');
-        fieldEl.className = 'field';
-        const labelText = nodes.length > 1 ? `${item.label} ${idx+1}` : item.label;
-        fieldEl.innerHTML = `<label>${labelText}</label>`;
-
-        if (item.ta || text.length > 80) {
-          const ta = document.createElement('textarea');
-          ta.id = fid; ta.value = text;
-          ta.addEventListener('input', () => markChanged(fid, ta));
-          fieldEl.appendChild(ta);
-        } else {
-          const inp = document.createElement('input');
-          inp.type = 'text'; inp.id = fid; inp.value = text;
-          inp.addEventListener('input', () => markChanged(fid, inp));
-          fieldEl.appendChild(inp);
-        }
-        groupEl.appendChild(fieldEl);
-      });
-    });
-
-    if (hasAny) container.appendChild(groupEl);
+  // Make text elements editable
+  doc.querySelectorAll('h1,h2,h3,h4,h5,p,li,.eyebrow,.stat-value,.stat-label').forEach(el => {
+    if (el.querySelector('img,iframe,svg') || el.closest('[data-no-edit]')) return;
+    el.contentEditable = 'true';
+    el.dataset.estEdit = '1';
+    el.style.cursor    = 'text';
+    el.addEventListener('focus', onFocus);
+    el.addEventListener('blur',  onBlur);
   });
 
-  if (!fieldIndex) {
-    container.innerHTML = '<p style="color:rgba(255,255,255,0.3);font-size:13px;padding:1rem 0;">No editable fields found on this page.</p>';
-  }
-
-  // Store fid → element mapping
-  window._fidMap = {};
-  doc.querySelectorAll('[data-fid]').forEach(el => {
-    window._fidMap[el.getAttribute('data-fid')] = { selector: el.tagName.toLowerCase() + (el.className ? '.' + el.className.split(' ')[0] : ''), originalText: el.textContent.trim() };
+  // Make images clickable to replace
+  doc.querySelectorAll('img').forEach(img => {
+    img.dataset.estImg = '1';
+    img.style.cursor   = 'pointer';
+    img.addEventListener('mouseenter', onImgHover);
+    img.addEventListener('mouseleave', onImgLeave);
+    img.addEventListener('click',      onImgClick);
   });
+
+  // Esc to exit
+  doc.addEventListener('keydown', onEsc);
 }
 
-function markChanged(fid, el) {
-  changedFields.add(fid);
-  el.classList.add('changed');
-  document.getElementById('changesCount').textContent = `${changedFields.size} unsaved change${changedFields.size !== 1 ? 's' : ''}`;
+function eject() {
+  const doc = frame.contentDocument;
+  if (!doc) return;
+  doc.querySelectorAll('[data-est-edit]').forEach(el => {
+    el.contentEditable = 'false';
+    delete el.dataset.estEdit;
+    el.style.cursor = '';
+    el.style.outline = '';
+    el.removeEventListener('focus', onFocus);
+    el.removeEventListener('blur',  onBlur);
+  });
+  doc.querySelectorAll('[data-est-img]').forEach(img => {
+    delete img.dataset.estImg;
+    img.style.cursor  = '';
+    img.style.outline = '';
+    img.removeEventListener('mouseenter', onImgHover);
+    img.removeEventListener('mouseleave', onImgLeave);
+    img.removeEventListener('click',      onImgClick);
+  });
+  doc.getElementById('_estLbl')?.remove();
+  doc.removeEventListener('keydown', onEsc);
 }
 
-// ── Save to GitHub ─────────────────────────────────────────────────
+function onFocus(e) { e.target.style.outline = '2px dashed rgba(229,41,31,0.55)'; e.target.style.borderRadius = '3px'; }
+function onBlur(e)  { e.target.style.outline = ''; }
+function onEsc(e)   { if (e.key === 'Escape') { editMode = false; updateEditUI(); eject(); } }
+
+function onImgHover(e) {
+  const img = e.target;
+  img.style.outline       = '3px solid rgba(229,41,31,0.7)';
+  img.style.outlineOffset = '2px';
+  // Tooltip
+  const doc = frame.contentDocument;
+  doc.getElementById('_estLbl')?.remove();
+  const lbl = doc.createElement('div');
+  lbl.id = '_estLbl';
+  const r = img.getBoundingClientRect();
+  lbl.style.cssText = `position:fixed;top:${r.top+r.height/2-12}px;left:${r.left+r.width/2}px;
+    transform:translateX(-50%);background:rgba(229,41,31,0.92);color:#fff;font-family:sans-serif;
+    font-size:11px;font-weight:700;padding:4px 10px;border-radius:5px;pointer-events:none;
+    z-index:999999;white-space:nowrap;letter-spacing:0.04em;`;
+  lbl.textContent = '📷 Click to replace';
+  doc.body.appendChild(lbl);
+}
+function onImgLeave(e) {
+  e.target.style.outline = '';
+  frame.contentDocument?.getElementById('_estLbl')?.remove();
+}
+function onImgClick(e) {
+  e.preventDefault(); e.stopPropagation();
+  targetImg = e.target;
+  document.getElementById('imgPicker').click();
+}
+
+// ── Image file picker ─────────────────────────────────────────────────
+document.getElementById('imgPicker').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file || !targetImg) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    targetImg.src = ev.target.result;
+    targetImg     = null;
+    setStatus('Image replaced — save to publish', 'ok');
+  };
+  reader.readAsDataURL(file);
+  e.target.value = '';
+});
+
+// ── Save & Publish ─────────────────────────────────────────────────────
 async function saveChanges() {
-  if (!ghToken) { alert('Add your GitHub token in the Dashboard first.'); return; }
-  if (!currentHTML) { alert('Load a page first.'); return; }
+  if (!currentPage) return;
+  if (!ghToken) { setStatus('No GitHub token — set in dashboard', 'err'); return; }
 
-  setStatus('saving', '⏳ Publishing changes…');
-  document.getElementById('saveBtn').disabled = true;
-
-  // Apply all field values to a fresh DOM parse
-  const parser = new DOMParser();
-  const doc    = parser.parseFromString(currentHTML, 'text/html');
-  let fieldIndex = 0;
-
-  const schema = [
-    { items: [
-      { sel: '.hero-eyebrow, .page-eyebrow, .eyebrow', multi: true },
-      { sel: '.hero-title, .page-hero h1, h1', multi: false },
-      { sel: '.hero-sub, .page-hero p, .hero p', multi: false },
-    ]},
-    { items: [
-      { sel: '.stat-value', multi: true },
-      { sel: '.stat-label', multi: true },
-    ]},
-    { items: [
-      { sel: '.section-header h2', multi: true },
-      { sel: '.section-header .section-sub', multi: true },
-    ]},
-    { items: [
-      { sel: 'main p:not(.eyebrow):not(.section-sub):not(.hero-sub):not(.form-note):not(.team-role)', multi: true },
-    ]},
-    { items: [
-      { sel: '.btn-primary, .btn-cta, .cta-section .btn', multi: true },
-    ]},
-  ];
-
-  schema.forEach(group => {
-    group.items.forEach(item => {
-      const els = doc.querySelectorAll(item.sel);
-      if (!els.length) return;
-      const nodes = item.multi ? Array.from(els) : [els[0]];
-      nodes.forEach(el => {
-        const text = el.textContent.trim();
-        if (!text || text.length < 2) return;
-        const fid = 'f' + fieldIndex++;
-        const input = document.getElementById(fid);
-        if (input && changedFields.has(fid)) {
-          el.textContent = input.value;
-        }
-      });
-    });
-  });
-
-  const newHTML = '<!DOCTYPE html>\n' + doc.documentElement.outerHTML;
+  saveBtn.disabled = true;
+  setStatus('Publishing…', 'busy');
 
   try {
-    // Get current SHA
-    const metaResp = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${currentPage}`, {
-      headers: { 'Authorization': `token ${ghToken}` }
-    });
-    const meta = await metaResp.json();
+    const doc = frame.contentDocument;
 
-    // Push update
-    const pushResp = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${currentPage}`, {
-      method: 'PUT',
-      headers: { 'Authorization': `token ${ghToken}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        message: `📝 Update ${currentPage} content via admin panel`,
-        content: btoa(unescape(encodeURIComponent(newHTML))),
-        sha: meta.sha
-      })
+    // Temporarily remove edit artefacts
+    const wasEditing = editMode;
+    eject();
+    doc.getElementById('_estLbl')?.remove();
+
+    const html     = '<!DOCTYPE html>\n' + doc.documentElement.outerHTML;
+    const filePath = currentPage.replace(/^\.\.\//, '');
+
+    const headers = {
+      'Authorization': `token ${ghToken}`,
+      'Accept':        'application/vnd.github.v3+json',
+      'Content-Type':  'application/json',
+    };
+
+    const getRes   = await fetch(`${GITHUB_API}/${filePath}`, { headers });
+    const fileData = await getRes.json();
+    if (!fileData.sha) throw new Error('Could not get file from GitHub');
+
+    const encoded = btoa(unescape(encodeURIComponent(html)));
+    const putRes  = await fetch(`${GITHUB_API}/${filePath}`, {
+      method: 'PUT', headers,
+      body: JSON.stringify({ message: `Update ${filePath} via EST editor`, content: encoded, sha: fileData.sha }),
     });
 
-    if (pushResp.ok) {
-      currentHTML = newHTML;
-      changedFields.clear();
-      document.querySelectorAll('.changed').forEach(el => el.classList.remove('changed'));
-      document.getElementById('changesCount').textContent = '';
-      setStatus('saved', '✓ Published! Live in ~30 seconds on Vercel.');
-    } else {
-      const err = await pushResp.json();
-      setStatus('error', '✗ GitHub error: ' + (err.message || pushResp.status));
-    }
-  } catch(e) {
-    setStatus('error', '✗ Error: ' + e.message);
+    if (!putRes.ok) { const err = await putRes.json(); throw new Error(err.message); }
+
+    if (wasEditing) inject();
+    setStatus('✓ Published — live in ~30s', 'ok');
+  } catch(err) {
+    setStatus('Error: ' + err.message, 'err');
+  } finally {
+    saveBtn.disabled = false;
   }
-
-  document.getElementById('saveBtn').disabled = false;
 }
 
-// ── Preview ───────────────────────────────────────────────────────
-function refreshPreview() {
-  const page = document.getElementById('pageSelect').value;
-  const frame = document.getElementById('previewFrame');
-  frame.src = '../' + page + '?preview=' + Date.now();
-  document.getElementById('previewOverlay').style.display = 'none';
-}
+function setStatus(msg, cls) { statusEl.textContent = msg; statusEl.className = cls || ''; }
 
-// ── Status ────────────────────────────────────────────────────────
-function setStatus(type, msg) {
-  const el = document.getElementById('statusBar');
-  el.className = 'status-bar ' + type;
-  el.textContent = msg;
-}
+// Cmd/Ctrl+S to save
+window.addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); saveChanges(); } });
+
+// Load home by default
+loadPage('../index.html');
 </script>
 </body>
 </html>
