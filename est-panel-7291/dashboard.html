@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>EST Admin — Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #0d1526; color: white; min-height: 100vh; }
+
+    /* Topbar */
+    .topbar {
+      background: #111827; border-bottom: 1px solid rgba(255,255,255,0.07);
+      padding: 0 2rem; height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .topbar-logo { display: flex; align-items: center; gap: 10px; }
+    .topbar-logo img { height: 28px; }
+    .topbar-logo span { font-size: 13px; font-weight: 600; opacity: 0.5; letter-spacing: 0.08em; }
+    .topbar-right { display: flex; align-items: center; gap: 1rem; }
+    .session-badge { font-size: 11px; color: rgba(255,255,255,0.3); }
+    .btn-logout {
+      padding: 6px 14px; background: transparent;
+      border: 1px solid rgba(255,255,255,0.15); border-radius: 6px;
+      color: rgba(255,255,255,0.5); font-family: inherit; font-size: 12px;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .btn-logout:hover { border-color: #e5291f; color: #e5291f; }
+
+    /* Main */
+    .main { max-width: 1100px; margin: 0 auto; padding: 3rem 2rem; }
+    .greeting { font-size: 1.6rem; font-weight: 700; margin-bottom: 0.4rem; }
+    .greeting span { color: #e5291f; }
+    .subtitle { color: rgba(255,255,255,0.4); font-size: 14px; margin-bottom: 2.5rem; }
+
+    /* GitHub token setup */
+    .token-card {
+      background: rgba(234,179,8,0.08); border: 1px solid rgba(234,179,8,0.25);
+      border-radius: 12px; padding: 1.25rem 1.5rem;
+      margin-bottom: 2rem; display: none;
+    }
+    .token-card h3 { color: #fde047; font-size: 13px; margin-bottom: 6px; }
+    .token-card p { color: rgba(255,255,255,0.5); font-size: 12px; margin-bottom: 10px; }
+    .token-row { display: flex; gap: 8px; }
+    .token-row input {
+      flex: 1; padding: 8px 12px;
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 6px; color: white; font-family: inherit; font-size: 13px; outline: none;
+    }
+    .token-row button {
+      padding: 8px 16px; background: #fde047; color: #111; font-family: inherit;
+      font-size: 12px; font-weight: 700; border: none; border-radius: 6px; cursor: pointer;
+    }
+    .token-ok {
+      background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2);
+      border-radius: 12px; padding: 1rem 1.5rem;
+      margin-bottom: 2rem; display: none;
+      color: #86efac; font-size: 13px; display: flex; align-items: center; gap: 8px;
+    }
+
+    /* Nav cards */
+    .nav-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; margin-bottom: 2.5rem; }
+    .nav-card {
+      background: #111827; border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 14px; padding: 1.75rem;
+      text-decoration: none; color: white;
+      transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+      display: flex; flex-direction: column; gap: 0.75rem;
+    }
+    .nav-card:hover { border-color: #e5291f; transform: translateY(-3px); box-shadow: 0 12px 30px rgba(0,0,0,0.3); }
+    .nav-card-icon {
+      width: 44px; height: 44px; border-radius: 10px;
+      background: rgba(229,41,31,0.12);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .nav-card-icon svg { width: 22px; height: 22px; color: #e5291f; }
+    .nav-card h3 { font-size: 1rem; font-weight: 600; }
+    .nav-card p { font-size: 12px; color: rgba(255,255,255,0.4); line-height: 1.5; }
+    .nav-card .tag {
+      display: inline-block; padding: 2px 8px;
+      background: rgba(229,41,31,0.1); color: #f87171;
+      border-radius: 20px; font-size: 10px; font-weight: 600; letter-spacing: 0.05em;
+    }
+
+    /* Security status */
+    .security-panel {
+      background: #111827; border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 14px; padding: 1.5rem;
+    }
+    .security-panel h3 { font-size: 14px; font-weight: 600; margin-bottom: 1rem; color: rgba(255,255,255,0.7); }
+    .security-list { display: flex; flex-direction: column; gap: 8px; }
+    .security-item { display: flex; align-items: center; gap: 10px; font-size: 13px; color: rgba(255,255,255,0.5); }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; flex-shrink: 0; }
+    .dot.warn { background: #fde047; }
+  </style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-logo">
+    <img src="../images/est-logo-red.png" alt="EST" />
+    <span>ADMIN PANEL</span>
+  </div>
+  <div class="topbar-right">
+    <span class="session-badge" id="sessionTimer"></span>
+    <button class="btn-logout" onclick="logout()">Sign Out</button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="greeting">Welcome back, <span>EST Team</span></div>
+  <p class="subtitle">Manage your website content, team, and settings.</p>
+
+  <!-- GitHub Token Setup -->
+  <div class="token-card" id="tokenSetup">
+    <h3>⚠ GitHub Token Required to Publish</h3>
+    <p>Enter your GitHub token once. It stays in your browser only — never sent to any server.</p>
+    <div class="token-row">
+      <input type="password" id="tokenInput" placeholder="ghp_..." />
+      <button onclick="saveToken()">Save Token</button>
+    </div>
+  </div>
+  <div class="token-ok" id="tokenOk">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+    GitHub token saved — publishing is enabled. Changes go live in ~30 seconds.
+  </div>
+
+  <!-- Main Navigation -->
+  <div class="nav-grid">
+    <a href="site-editor.html" class="nav-card">
+      <div class="nav-card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      </div>
+      <h3>Edit Website Text</h3>
+      <p>Change any text, headings, stats, or descriptions across all 6 pages.</p>
+      <span class="tag">6 PAGES</span>
+    </a>
+
+    <a href="team-editor.html" class="nav-card">
+      <div class="nav-card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+      <h3>Manage Team</h3>
+      <p>Add, edit or remove team members. Upload and crop profile photos.</p>
+      <span class="tag">17 MEMBERS</span>
+    </a>
+
+    <a href="image-editor.html" class="nav-card">
+      <div class="nav-card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      </div>
+      <h3>Photos & Images</h3>
+      <p>Replace site images, logos, and banners. Crop and resize to fit perfectly.</p>
+      <span class="tag">IMAGES</span>
+    </a>
+  </div>
+
+  <!-- Security Status -->
+  <div class="security-panel">
+    <h3>🔐 Security Status</h3>
+    <div class="security-list">
+      <div class="security-item"><div class="dot"></div> Secret URL path — admin not publicly listed</div>
+      <div class="security-item"><div class="dot"></div> Password hashed with SHA-256 — not visible in source code</div>
+      <div class="security-item"><div class="dot"></div> Login lockout — 5 attempts triggers 15-minute block</div>
+      <div class="security-item"><div class="dot"></div> Session timeout — auto sign-out after 2 hours</div>
+      <div class="security-item"><div class="dot"></div> Security headers — XSS, clickjacking & sniffing blocked</div>
+      <div class="security-item"><div class="dot"></div> robots.txt — Google cannot index this panel</div>
+      <div class="security-item"><div class="dot" id="auditDot"></div> <span id="auditLabel">Audit log — each login recorded to GitHub</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SESSION_MS = 2 * 60 * 60 * 1000;
+
+// Auth guard
+const sessionStart = parseInt(sessionStorage.getItem('est_session') || '0');
+if (!sessionStart || Date.now() - sessionStart > SESSION_MS) {
+  window.location.href = 'index.html';
+}
+
+// Session timer
+function updateTimer() {
+  const elapsed = Date.now() - sessionStart;
+  const rem = Math.max(0, SESSION_MS - elapsed);
+  const h = Math.floor(rem / 3600000);
+  const m = Math.floor((rem % 3600000) / 60000);
+  document.getElementById('sessionTimer').textContent = `Session: ${h}h ${m}m remaining`;
+  if (rem === 0) logout();
+}
+setInterval(updateTimer, 30000);
+updateTimer();
+
+// GitHub token
+function saveToken() {
+  const t = document.getElementById('tokenInput').value.trim();
+  if (t) {
+    localStorage.setItem('est_gh_token', t);
+    showTokenStatus();
+  }
+}
+function showTokenStatus() {
+  const t = localStorage.getItem('est_gh_token');
+  if (t) {
+    document.getElementById('tokenSetup').style.display = 'none';
+    document.getElementById('tokenOk').style.display   = 'flex';
+    document.getElementById('auditDot').className       = 'dot';
+  } else {
+    document.getElementById('tokenSetup').style.display = 'block';
+    document.getElementById('tokenOk').style.display    = 'none';
+    document.getElementById('auditDot').className        = 'dot warn';
+    document.getElementById('auditLabel').textContent    = 'Audit log — set GitHub token to enable';
+  }
+}
+showTokenStatus();
+
+function logout() {
+  sessionStorage.clear();
+  window.location.href = 'index.html';
+}
+</script>
+</body>
+</html>
