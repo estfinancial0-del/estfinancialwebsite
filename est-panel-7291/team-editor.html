@@ -180,6 +180,72 @@
 
     /* Order hint */
     .order-hint { font-size: 12px; color: rgba(255,255,255,0.2); margin-bottom: 1rem; }
+
+    /* ── Photo Modal ─────────────────────────────────── */
+    .photo-modal { width: 92vw; max-width: 880px; max-height: 92vh; display: flex; flex-direction: column; padding: 0; overflow: hidden; }
+
+    /* Step tabs */
+    .step-tabs { display: flex; border-bottom: 1px solid rgba(255,255,255,0.08); flex-shrink: 0; }
+    .step-tab { flex: 1; padding: 12px; background: none; border: none; color: rgba(255,255,255,0.35); font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; border-bottom: 2px solid transparent; }
+    .step-tab:hover { color: rgba(255,255,255,0.6); }
+    .step-tab.active { color: white; border-bottom-color: #e5291f; }
+
+    /* Tab panes */
+    .tab-pane { display: none; flex-direction: column; flex: 1; overflow: hidden; padding: 16px 20px 14px; }
+    .tab-pane.active { display: flex; }
+
+    /* Step 2: Fit layout */
+    .fit-layout { display: flex; gap: 24px; flex: 1; overflow: hidden; }
+    .fit-controls-col { width: 220px; flex-shrink: 0; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; }
+    .fit-preview-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 4px; }
+    .adj-section { display: flex; flex-direction: column; gap: 5px; }
+    .adj-title { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.3); }
+    .adj-hint { font-size: 11px; color: rgba(255,255,255,0.25); }
+    .adj-section label { font-size: 11px; color: rgba(255,255,255,0.5); display: flex; justify-content: space-between; margin-top: 3px; }
+    .adj-section input[type=range] { width: 100%; accent-color: #e5291f; }
+
+    /* Quick position grid */
+    .pos-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+    .pos-btn { padding: 5px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.09); border-radius: 5px; color: rgba(255,255,255,0.55); font-size: 11px; cursor: pointer; font-family: inherit; transition: all 0.15s; }
+    .pos-btn:hover, .pos-btn.active { background: rgba(229,41,31,0.15); border-color: rgba(229,41,31,0.35); color: white; }
+
+    /* Background swatches */
+    .bg-swatches { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+    .swatch { width: 28px; height: 28px; border-radius: 6px; cursor: pointer; border: 2px solid transparent; transition: all 0.15s; flex-shrink: 0; }
+    .swatch:hover, .swatch.active { border-color: white; transform: scale(1.1); }
+    .transparent-swatch { background: repeating-conic-gradient(#444 0% 25%, #222 0% 50%) 0 0/10px 10px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: rgba(255,255,255,0.4); }
+    .color-swatch { background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 14px; color: rgba(255,255,255,0.5); cursor: pointer; }
+    .color-swatch input { position: absolute; opacity: 0; width: 0; height: 0; }
+
+    /* Card preview */
+    .card-preview { width: 160px; background: #111827; border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
+    .card-preview-photo { height: 200px; overflow: hidden; position: relative; cursor: grab; background: #080f1e; }
+    .card-preview-photo:active { cursor: grabbing; }
+    .card-preview-photo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; display: block; pointer-events: none; }
+    .card-preview-info { padding: 10px 12px 14px; }
+    .card-preview-name { font-size: 12px; font-weight: 600; color: white; margin-bottom: 3px; }
+    .card-preview-role { font-size: 10px; color: #e5291f; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+
+    /* Step 3: Canva */
+    .canva-pane { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 16px; padding: 12px 0; overflow-y: auto; }
+    .canva-logo { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .canva-logo h3 { font-size: 1.1rem; }
+    .canva-desc { font-size: 13px; color: rgba(255,255,255,0.5); max-width: 420px; line-height: 1.6; }
+    .canva-steps { text-align: left; font-size: 13px; color: rgba(255,255,255,0.55); line-height: 1.8; max-width: 360px; padding-left: 1.2rem; }
+    .canva-steps strong { color: white; }
+    .canva-steps em { color: rgba(255,255,255,0.35); }
+    .canva-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+    .btn-canva-dl { background: rgba(255,255,255,0.08); color: white; border: 1px solid rgba(255,255,255,0.15); padding: 9px 20px; border-radius: 8px; font-family: inherit; font-size: 13px; cursor: pointer; transition: all 0.2s; }
+    .btn-canva-dl:hover { background: rgba(255,255,255,0.14); }
+    .btn-canva-open { background: #7D2AE8; color: white; padding: 9px 20px; border-radius: 8px; font-family: inherit; font-size: 13px; font-weight: 600; text-decoration: none; display: inline-block; transition: background 0.2s; }
+    .btn-canva-open:hover { background: #6b21c8; }
+    .canva-upload-wrap { border-top: 1px solid rgba(255,255,255,0.07); padding-top: 14px; width: 100%; max-width: 360px; }
+    .btn-canva-upload { display: inline-block; background: rgba(125,42,232,0.15); border: 1px dashed rgba(125,42,232,0.4); color: #c4b5fd; padding: 9px 20px; border-radius: 8px; font-family: inherit; font-size: 13px; cursor: pointer; transition: all 0.2s; }
+    .btn-canva-upload:hover { background: rgba(125,42,232,0.25); color: white; }
+
+    /* Shared action buttons */
+    .btn-next { background: #e5291f; color: white; padding: 8px 20px; border-radius: 7px; font-family: inherit; font-size: 13px; font-weight: 600; border: none; cursor: pointer; }
+    .btn-next:hover { background: #c9221a; }
   </style>
 </head>
 <body>
@@ -198,124 +264,149 @@
   <div class="team-grid" id="teamGrid"></div>
 </div>
 
-<!-- Crop Modal -->
+<!-- Photo Editor Modal (3 steps) -->
 <div class="modal-bg" id="cropModal">
-  <div class="modal">
-    <h3>Crop &amp; Adjust Photo</h3>
+  <div class="modal photo-modal">
 
-    <!-- Controls -->
-    <div class="crop-controls">
-      <div class="ctrl-group">
-        <span class="ctrl-label">Rotate</span>
-        <button class="ctrl-btn" onclick="cropperInstance.rotate(-90)" title="Rotate left">↺ 90°</button>
-        <button class="ctrl-btn" onclick="cropperInstance.rotate(90)"  title="Rotate right">↻ 90°</button>
-        <button class="ctrl-btn" onclick="cropperInstance.rotate(-5)"  title="Fine left">−5°</button>
-        <button class="ctrl-btn" onclick="cropperInstance.rotate(5)"   title="Fine right">+5°</button>
-      </div>
-      <div class="ctrl-group">
-        <span class="ctrl-label">Flip</span>
-        <button class="ctrl-btn" onclick="cropperInstance.scaleX(cropperInstance.getData().scaleX === -1 ? 1 : -1)">↔ Flip H</button>
-        <button class="ctrl-btn" onclick="cropperInstance.scaleY(cropperInstance.getData().scaleY === -1 ? 1 : -1)">↕ Flip V</button>
-      </div>
-      <div class="ctrl-group">
-        <span class="ctrl-label">Zoom</span>
-        <button class="ctrl-btn" onclick="cropperInstance.zoom(0.1)">＋</button>
-        <button class="ctrl-btn" onclick="cropperInstance.zoom(-0.1)">－</button>
-        <button class="ctrl-btn" onclick="cropperInstance.reset()">Reset</button>
-      </div>
-      <div class="ctrl-group">
-        <span class="ctrl-label">Ratio</span>
-        <button class="ctrl-btn ratio-btn active" onclick="setRatio(3,4,this)">3:4 Portrait</button>
-        <button class="ctrl-btn ratio-btn" onclick="setRatio(1,1,this)">1:1 Square</button>
-        <button class="ctrl-btn ratio-btn" onclick="setRatio(NaN,NaN,this)">Free</button>
-      </div>
+    <!-- Step tabs -->
+    <div class="step-tabs">
+      <button class="step-tab active" id="tab-crop"   onclick="switchTab('crop')">1 · Crop &amp; Rotate</button>
+      <button class="step-tab"        id="tab-fit"    onclick="switchTab('fit')">2 · Fit &amp; Background</button>
+      <button class="step-tab"        id="tab-canva"  onclick="switchTab('canva')">3 · Edit in Canva</button>
     </div>
 
-    <div class="crop-container" id="cropContainer">
-      <img id="cropImg" src="" alt="" />
-    </div>
-
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeCrop()">Cancel</button>
-      <button class="btn-canvas" onclick="openCanvas()">🎨 Edit in Canvas</button>
-      <button class="btn-crop" onclick="applyCrop()">✓ Use This Crop</button>
-    </div>
-  </div>
-</div>
-
-<!-- Canvas Editor Modal -->
-<div class="modal-bg" id="canvasModal">
-  <div class="modal canvas-modal">
-    <div class="canvas-header">
-      <h3>Canvas Editor</h3>
-      <div class="canvas-tools">
-        <button class="tool-btn active" id="toolSelect"  onclick="setTool('select')"  title="Select">↖ Select</button>
-        <button class="tool-btn"        id="toolDraw"    onclick="setTool('draw')"    title="Draw">✏ Draw</button>
-        <button class="tool-btn"        id="toolText"    onclick="setTool('text')"    title="Text">T Text</button>
-        <button class="tool-btn"        id="toolErase"   onclick="setTool('erase')"   title="Erase">◻ Erase</button>
-      </div>
-    </div>
-
-    <div class="canvas-layout">
-      <!-- Left panel: adjustments -->
-      <div class="canvas-sidebar">
-        <div class="adj-section">
-          <p class="adj-title">Adjustments</p>
-          <label>Brightness <span id="brightVal">0</span></label>
-          <input type="range" min="-100" max="100" value="0" id="brightness" oninput="applyFilters()">
-          <label>Contrast <span id="contrastVal">0</span></label>
-          <input type="range" min="-100" max="100" value="0" id="contrast" oninput="applyFilters()">
-          <label>Saturation <span id="satVal">0</span></label>
-          <input type="range" min="-100" max="100" value="0" id="saturation" oninput="applyFilters()">
-          <label>Blur <span id="blurVal">0</span></label>
-          <input type="range" min="0" max="10" value="0" step="0.5" id="blur" oninput="applyFilters()">
+    <!-- STEP 1: Crop -->
+    <div class="tab-pane active" id="pane-crop">
+      <div class="crop-controls">
+        <div class="ctrl-group">
+          <span class="ctrl-label">Rotate</span>
+          <button class="ctrl-btn" onclick="cropperInstance.rotate(-90)">↺ 90°</button>
+          <button class="ctrl-btn" onclick="cropperInstance.rotate(90)">↻ 90°</button>
+          <button class="ctrl-btn" onclick="cropperInstance.rotate(-5)">−5°</button>
+          <button class="ctrl-btn" onclick="cropperInstance.rotate(5)">+5°</button>
         </div>
+        <div class="ctrl-group">
+          <span class="ctrl-label">Flip</span>
+          <button class="ctrl-btn" onclick="cropperInstance.scaleX(cropperInstance.getData().scaleX===-1?1:-1)">↔ H</button>
+          <button class="ctrl-btn" onclick="cropperInstance.scaleY(cropperInstance.getData().scaleY===-1?1:-1)">↕ V</button>
+        </div>
+        <div class="ctrl-group">
+          <span class="ctrl-label">Zoom</span>
+          <button class="ctrl-btn" onclick="cropperInstance.zoom(0.1)">＋</button>
+          <button class="ctrl-btn" onclick="cropperInstance.zoom(-0.1)">－</button>
+          <button class="ctrl-btn" onclick="cropperInstance.reset()">Reset</button>
+        </div>
+        <div class="ctrl-group">
+          <span class="ctrl-label">Ratio</span>
+          <button class="ctrl-btn ratio-btn active" onclick="setRatio(3,4,this)">3:4</button>
+          <button class="ctrl-btn ratio-btn" onclick="setRatio(1,1,this)">1:1</button>
+          <button class="ctrl-btn ratio-btn" onclick="setRatio(NaN,NaN,this)">Free</button>
+        </div>
+      </div>
+      <div class="crop-container" id="cropContainer">
+        <img id="cropImg" src="" alt="" />
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeCrop()">Cancel</button>
+        <button class="btn-next" onclick="goToFit()">Next: Fit &amp; Background →</button>
+      </div>
+    </div>
 
-        <div class="adj-section">
-          <p class="adj-title">Filters</p>
-          <div class="filter-grid">
-            <button class="filter-btn active" onclick="applyPreset('none',this)">None</button>
-            <button class="filter-btn" onclick="applyPreset('warm',this)">Warm</button>
-            <button class="filter-btn" onclick="applyPreset('cool',this)">Cool</button>
-            <button class="filter-btn" onclick="applyPreset('bw',this)">B&amp;W</button>
-            <button class="filter-btn" onclick="applyPreset('vintage',this)">Vintage</button>
-            <button class="filter-btn" onclick="applyPreset('sharp',this)">Sharp</button>
+    <!-- STEP 2: Fit & Background -->
+    <div class="tab-pane" id="pane-fit">
+      <div class="fit-layout">
+        <!-- Left: controls -->
+        <div class="fit-controls-col">
+          <div class="adj-section">
+            <p class="adj-title">Position in Card</p>
+            <p class="adj-hint">Drag the photo in the preview, or use sliders</p>
+            <label>Left ↔ Right &nbsp;<span id="posXVal">50</span>%</label>
+            <input type="range" min="0" max="100" value="50" id="posX" oninput="updateFitPreview()">
+            <label>Top ↕ Bottom &nbsp;<span id="posYVal">20</span>%</label>
+            <input type="range" min="0" max="100" value="20" id="posY" oninput="updateFitPreview()">
+          </div>
+
+          <div class="adj-section">
+            <p class="adj-title">Quick Position</p>
+            <div class="pos-grid">
+              <button class="pos-btn" onclick="setPos(50,0)">Top</button>
+              <button class="pos-btn" onclick="setPos(50,50)">Centre</button>
+              <button class="pos-btn" onclick="setPos(50,80)">Bottom</button>
+              <button class="pos-btn active" onclick="setPos(50,20)">Face (default)</button>
+            </div>
+          </div>
+
+          <div class="adj-section">
+            <p class="adj-title">Background <span style="font-weight:400;color:rgba(255,255,255,0.3)">(for transparent PNGs)</span></p>
+            <div class="bg-swatches">
+              <div class="swatch active" style="background:#080f1e" data-bg="#080f1e" onclick="setBg('#080f1e',this)" title="Navy (default)"></div>
+              <div class="swatch" style="background:#1e293b" data-bg="#1e293b" onclick="setBg('#1e293b',this)" title="Dark Blue"></div>
+              <div class="swatch" style="background:#ffffff" data-bg="#ffffff" onclick="setBg('#ffffff',this)" title="White"></div>
+              <div class="swatch" style="background:#f1f5f9" data-bg="#f1f5f9" onclick="setBg('#f1f5f9',this)" title="Light Grey"></div>
+              <div class="swatch" style="background:#e5291f" data-bg="#e5291f" onclick="setBg('#e5291f',this)" title="Red"></div>
+              <div class="swatch" style="background:linear-gradient(135deg,#080f1e,#1e3a5f)" data-bg="linear-gradient(135deg,#080f1e,#1e3a5f)" onclick="setBg('linear-gradient(135deg,#080f1e,#1e3a5f)',this)" title="Gradient"></div>
+              <div class="swatch transparent-swatch" data-bg="transparent" onclick="setBg('transparent',this)" title="Transparent / None">✕</div>
+              <label class="swatch color-swatch" title="Custom colour">
+                <input type="color" id="bgColorPicker" oninput="setBg(this.value,null)">
+                +
+              </label>
+            </div>
           </div>
         </div>
 
-        <div class="adj-section" id="drawOptions">
-          <p class="adj-title">Draw Options</p>
-          <label>Colour</label>
-          <input type="color" id="drawColor" value="#e5291f" style="width:100%;height:32px;border-radius:6px;border:none;cursor:pointer;">
-          <label>Size <span id="brushSizeVal">4</span>px</label>
-          <input type="range" min="1" max="40" value="4" id="brushSize">
-          <label>Opacity <span id="brushOpacityVal">100</span>%</label>
-          <input type="range" min="10" max="100" value="100" id="brushOpacity">
+        <!-- Right: live card preview -->
+        <div class="fit-preview-col">
+          <p class="adj-title" style="margin-bottom:12px">Live Preview</p>
+          <div class="card-preview" id="cardPreview">
+            <div class="card-preview-photo" id="previewPhotoWrap">
+              <img id="previewImg" src="" alt="" draggable="false" />
+            </div>
+            <div class="card-preview-info">
+              <div class="card-preview-name" id="previewName">Team Member</div>
+              <div class="card-preview-role" id="previewRole">Role</div>
+            </div>
+          </div>
+          <p style="font-size:11px;color:rgba(255,255,255,0.25);margin-top:8px;text-align:center">Drag photo in preview to reposition</p>
         </div>
-
-        <div class="adj-section" id="textOptions" style="display:none;">
-          <p class="adj-title">Text Options</p>
-          <input type="text" id="textInput" placeholder="Type text here..." style="width:100%;padding:6px 8px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:white;font-family:inherit;">
-          <label>Colour</label>
-          <input type="color" id="textColor" value="#ffffff" style="width:100%;height:32px;border-radius:6px;border:none;cursor:pointer;margin-top:4px;">
-          <label>Size <span id="textSizeVal">24</span>px</label>
-          <input type="range" min="10" max="80" value="24" id="textSize" oninput="document.getElementById('textSizeVal').textContent=this.value">
-          <p style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:8px;">Click on the canvas to place text</p>
-        </div>
-
-        <button class="btn-canvas-reset" onclick="resetCanvas()">↺ Reset All</button>
       </div>
-
-      <!-- Canvas area -->
-      <div class="canvas-wrap">
-        <canvas id="editCanvas"></canvas>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="switchTab('crop')">← Back</button>
+        <button class="btn-crop" onclick="applyFit()">✓ Save Photo</button>
       </div>
     </div>
 
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeCanvas()">← Back to Crop</button>
-      <button class="btn-crop" onclick="applyCanvas()">✓ Use This Image</button>
+    <!-- STEP 3: Canva -->
+    <div class="tab-pane" id="pane-canva">
+      <div class="canva-pane">
+        <div class="canva-logo">
+          <svg viewBox="0 0 60 60" width="56" height="56"><circle cx="30" cy="30" r="30" fill="#7D2AE8"/><text x="50%" y="56%" dominant-baseline="middle" text-anchor="middle" fill="white" font-size="26" font-weight="700" font-family="sans-serif">C</text></svg>
+          <h3>Edit in Canva</h3>
+        </div>
+        <p class="canva-desc">Download your cropped photo and open it in Canva for advanced editing — backgrounds, effects, overlays, brand templates and more.</p>
+        <ol class="canva-steps">
+          <li>Click <strong>Download Photo</strong> to save the cropped image</li>
+          <li>Click <strong>Open Canva</strong> — Canva will open in a new tab</li>
+          <li>In Canva: <em>Create a design → Upload your photo → Edit</em></li>
+          <li>Download from Canva, then upload it back here</li>
+        </ol>
+        <div class="canva-actions">
+          <button class="btn-canva-dl" onclick="downloadCroppedPhoto()">⬇ Download Photo</button>
+          <a href="https://www.canva.com/photo-editor/" target="_blank" rel="noopener" class="btn-canva-open">Open Canva →</a>
+        </div>
+        <div class="canva-upload-wrap">
+          <p style="font-size:12px;color:rgba(255,255,255,0.3);margin-bottom:8px">Done editing in Canva? Upload the result here:</p>
+          <label class="btn-canva-upload">
+            ⬆ Upload Canva Result
+            <input type="file" accept="image/*" onchange="handleCanvaUpload(event)" style="display:none">
+          </label>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="switchTab('fit')">← Back to Fit</button>
+        <button class="btn-crop" onclick="applyFit()">✓ Done</button>
+      </div>
     </div>
+
   </div>
 </div>
 
@@ -368,11 +459,14 @@ function render() {
     card.dataset.id = m.id;
 
     const photoSrc = newPhotoBase64[m.id] || (m.photo ? '../' + m.photo : null);
+    const posX = m.posX !== undefined ? m.posX : 50;
+    const posY = m.posY !== undefined ? m.posY : 20;
+    const bg   = m.bg   || '#080f1e';
 
     card.innerHTML = `
-      <div class="card-photo" onclick="triggerPhotoUpload('${m.id}')">
+      <div class="card-photo" onclick="triggerPhotoUpload('${m.id}')" style="background:${bg}">
         ${photoSrc
-          ? `<img src="${photoSrc}" alt="${m.name}" />`
+          ? `<img src="${photoSrc}" alt="${m.name}" style="object-position:${posX}% ${posY}%" />`
           : `<div class="card-photo-initials">${m.initials}</div>`
         }
         <div class="card-photo-overlay">
@@ -442,6 +536,19 @@ document.getElementById('fileInput').addEventListener('change', function(e) {
   e.target.value = '';
 });
 
+// ── Photo Editor: 3-tab system ─────────────────────────────────
+let currentBg   = '#080f1e';
+let currentPosX = 50;
+let currentPosY = 20;
+let croppedDataUrl = null; // holds result from step 1
+
+function switchTab(tab) {
+  document.querySelectorAll('.step-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.getElementById('pane-' + tab).classList.add('active');
+}
+
 function setRatio(w, h, btn) {
   document.querySelectorAll('.ratio-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
@@ -450,26 +557,18 @@ function setRatio(w, h, btn) {
 }
 
 function openCrop(src) {
+  switchTab('crop');
   document.getElementById('cropModal').classList.add('open');
   const img = document.getElementById('cropImg');
   img.src = src;
-
-  // Reset ratio buttons
   document.querySelectorAll('.ratio-btn').forEach(b => b.classList.remove('active'));
   document.querySelector('.ratio-btn')?.classList.add('active');
-
   if (cropperInstance) { cropperInstance.destroy(); cropperInstance = null; }
   setTimeout(() => {
     cropperInstance = new Cropper(img, {
-      aspectRatio: 3/4,
-      viewMode: 1,
-      guides: true,
-      center: true,
-      background: false,
-      rotatable: true,
-      scalable: true,
-      zoomable: true,
-      movable: true,
+      aspectRatio: 3/4, viewMode: 1, guides: true,
+      center: true, background: false,
+      rotatable: true, scalable: true, zoomable: true, movable: true,
     });
   }, 200);
 }
@@ -479,13 +578,113 @@ function closeCrop() {
   if (cropperInstance) { cropperInstance.destroy(); cropperInstance = null; }
 }
 
-function applyCrop() {
-  if (!cropperInstance || !activeMemberId) return;
-  const canvas = cropperInstance.getCroppedCanvas({ width: 480, height: 640 });
-  const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-  newPhotoBase64[activeMemberId] = dataUrl;
+// Step 1 → Step 2
+function goToFit() {
+  if (!cropperInstance) return;
+  croppedDataUrl = cropperInstance.getCroppedCanvas({ width: 480, height: 640, imageSmoothingQuality: 'high' }).toDataURL('image/jpeg', 0.92);
+  const m = team.find(t => t.id === activeMemberId);
+  document.getElementById('previewName').textContent = m ? m.name : '';
+  document.getElementById('previewRole').textContent = m ? m.role : '';
+  document.getElementById('previewImg').src = croppedDataUrl;
+  document.getElementById('previewPhotoWrap').style.background = currentBg;
+  document.getElementById('posX').value = currentPosX;
+  document.getElementById('posY').value = currentPosY;
+  document.getElementById('posXVal').textContent = currentPosX;
+  document.getElementById('posYVal').textContent = currentPosY;
+  updateFitPreview();
+  setupPreviewDrag();
+  switchTab('fit');
+}
+
+function updateFitPreview() {
+  const x = document.getElementById('posX').value;
+  const y = document.getElementById('posY').value;
+  document.getElementById('posXVal').textContent = x;
+  document.getElementById('posYVal').textContent = y;
+  currentPosX = parseInt(x);
+  currentPosY = parseInt(y);
+  document.getElementById('previewImg').style.objectPosition = `${x}% ${y}%`;
+}
+
+function setPos(x, y) {
+  currentPosX = x; currentPosY = y;
+  document.getElementById('posX').value = x;
+  document.getElementById('posY').value = y;
+  document.getElementById('posXVal').textContent = x;
+  document.getElementById('posYVal').textContent = y;
+  document.getElementById('previewImg').style.objectPosition = `${x}% ${y}%`;
+  document.querySelectorAll('.pos-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+function setBg(bg, btn) {
+  currentBg = bg;
+  document.getElementById('previewPhotoWrap').style.background = bg;
+  document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+}
+
+// Drag to reposition in preview
+function setupPreviewDrag() {
+  const wrap = document.getElementById('previewPhotoWrap');
+  let isDragging = false, startX, startY, startPX, startPY;
+  wrap.onmousedown = e => {
+    isDragging = true;
+    startX = e.clientX; startY = e.clientY;
+    startPX = currentPosX; startPY = currentPosY;
+    wrap.style.cursor = 'grabbing';
+  };
+  document.onmousemove = e => {
+    if (!isDragging) return;
+    const rect = wrap.getBoundingClientRect();
+    const dx = -(e.clientX - startX) / rect.width  * 100;
+    const dy = -(e.clientY - startY) / rect.height * 100;
+    currentPosX = Math.min(100, Math.max(0, startPX + dx));
+    currentPosY = Math.min(100, Math.max(0, startPY + dy));
+    document.getElementById('posX').value = currentPosX;
+    document.getElementById('posY').value = currentPosY;
+    document.getElementById('posXVal').textContent = Math.round(currentPosX);
+    document.getElementById('posYVal').textContent = Math.round(currentPosY);
+    document.getElementById('previewImg').style.objectPosition = `${currentPosX}% ${currentPosY}%`;
+  };
+  document.onmouseup = () => { isDragging = false; wrap.style.cursor = 'grab'; };
+}
+
+// Save photo with position & background
+function applyFit() {
+  if (!croppedDataUrl || !activeMemberId) return;
+  const m = team.find(t => t.id === activeMemberId);
+  if (m) {
+    m._pendingUpload = croppedDataUrl;
+    m.posX = currentPosX;
+    m.posY = currentPosY;
+    m.bg   = currentBg;
+    newPhotoBase64[m.id] = croppedDataUrl;
+  }
   closeCrop();
   render();
+  setStatus('saving', '✎ Photo updated — click Save & Publish to go live.');
+}
+
+// Step 3: Canva helpers
+function downloadCroppedPhoto() {
+  if (!croppedDataUrl) { alert('Please complete Step 1 (Crop) first.'); switchTab('crop'); return; }
+  const a = document.createElement('a');
+  a.href = croppedDataUrl;
+  a.download = 'est-team-photo.jpg';
+  a.click();
+}
+
+function handleCanvaUpload(e) {
+  const file = e.target.files[0];
+  if (!file || !activeMemberId) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    croppedDataUrl = ev.target.result;
+    // Go to fit step so they can position the Canva result
+    goToFit();
+  };
+  reader.readAsDataURL(file);
 }
 
 // ── Save to GitHub ─────────────────────────────────────────────────
@@ -578,192 +777,9 @@ function setStatus(type, msg) {
 // Init
 render();
 
-// ── Canvas Editor ──────────────────────────────────────────────
-let canvasCtx, canvasImg, originalImageData;
-let currentTool = 'select';
-let isDrawing = false;
-let lastX = 0, lastY = 0;
-let canvasFilters = { brightness: 0, contrast: 0, saturation: 0, blur: 0 };
+// (canvas editor removed — use Canva tab for advanced editing)
 
-function openCanvas() {
-  // Get cropped image from cropper
-  const croppedCanvas = cropperInstance.getCroppedCanvas({ width: 600, height: 800, imageSmoothingQuality: 'high' });
-  const dataUrl = croppedCanvas.toDataURL('image/jpeg', 0.95);
 
-  const editCanvas = document.getElementById('editCanvas');
-  canvasCtx = editCanvas.getContext('2d');
-
-  canvasImg = new Image();
-  canvasImg.onload = () => {
-    editCanvas.width  = canvasImg.width;
-    editCanvas.height = canvasImg.height;
-    canvasCtx.drawImage(canvasImg, 0, 0);
-    originalImageData = canvasCtx.getImageData(0, 0, editCanvas.width, editCanvas.height);
-    setupCanvasEvents(editCanvas);
-  };
-  canvasImg.src = dataUrl;
-
-  // Reset sliders
-  ['brightness','contrast','saturation','blur'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.value = 0;
-  });
-  document.getElementById('brightVal').textContent = '0';
-  document.getElementById('contrastVal').textContent = '0';
-  document.getElementById('satVal').textContent = '0';
-  document.getElementById('blurVal').textContent = '0';
-  document.querySelectorAll('.filter-btn').forEach((b,i) => b.classList.toggle('active', i===0));
-
-  document.getElementById('canvasModal').classList.add('open');
-}
-
-function closeCanvas() {
-  document.getElementById('canvasModal').classList.remove('open');
-}
-
-function applyCanvas() {
-  const dataUrl = document.getElementById('editCanvas').toDataURL('image/jpeg', 0.92);
-  // Store as final photo for this member
-  if (editingMemberId !== null) {
-    const m = team.find(t => t.id === editingMemberId);
-    if (m) {
-      m.photo = dataUrl;
-      m._pendingUpload = dataUrl;
-    }
-    render();
-    setStatus('saving', '✎ Image edited — click Save & Publish to go live.');
-  }
-  closeCanvas();
-  closeCrop();
-}
-
-function resetCanvas() {
-  if (!originalImageData || !canvasCtx) return;
-  canvasCtx.putImageData(originalImageData, 0, 0);
-  ['brightness','contrast','saturation','blur'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.value = 0;
-  });
-  document.getElementById('brightVal').textContent = '0';
-  document.getElementById('contrastVal').textContent = '0';
-  document.getElementById('satVal').textContent = '0';
-  document.getElementById('blurVal').textContent = '0';
-}
-
-function applyFilters() {
-  const b = parseInt(document.getElementById('brightness').value);
-  const c = parseInt(document.getElementById('contrast').value);
-  const s = parseInt(document.getElementById('saturation').value);
-  const bl = parseFloat(document.getElementById('blur').value);
-  document.getElementById('brightVal').textContent = b;
-  document.getElementById('contrastVal').textContent = c;
-  document.getElementById('satVal').textContent = s;
-  document.getElementById('blurVal').textContent = bl;
-
-  const canvas = document.getElementById('editCanvas');
-  // Rebuild from original
-  canvasCtx.putImageData(originalImageData, 0, 0);
-
-  // Apply CSS filter to get the result
-  const tmpCanvas = document.createElement('canvas');
-  tmpCanvas.width = canvas.width; tmpCanvas.height = canvas.height;
-  const tmpCtx = tmpCanvas.getContext('2d');
-
-  const bPct  = 1 + b/100;
-  const cPct  = 1 + c/100;
-  const sPct  = 1 + s/100;
-  tmpCtx.filter = `brightness(${bPct}) contrast(${cPct}) saturate(${sPct})${bl > 0 ? ` blur(${bl}px)` : ''}`;
-  tmpCtx.drawImage(canvas, 0, 0);
-
-  canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
-  canvasCtx.drawImage(tmpCanvas, 0, 0);
-}
-
-function applyPreset(name, btn) {
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  const presets = {
-    none:    {brightness:0, contrast:0, saturation:0, blur:0},
-    warm:    {brightness:10, contrast:5, saturation:20, blur:0},
-    cool:    {brightness:5, contrast:5, saturation:-15, blur:0},
-    bw:      {brightness:0, contrast:20, saturation:-100, blur:0},
-    vintage: {brightness:-10, contrast:15, saturation:-30, blur:0},
-    sharp:   {brightness:5, contrast:30, saturation:10, blur:0},
-  };
-  const p = presets[name] || presets.none;
-  Object.entries(p).forEach(([k,v]) => {
-    const el = document.getElementById(k);
-    if (el) el.value = v;
-  });
-  applyFilters();
-}
-
-function setTool(tool) {
-  currentTool = tool;
-  document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('tool' + tool.charAt(0).toUpperCase() + tool.slice(1))?.classList.add('active');
-  document.getElementById('drawOptions').style.display = (tool === 'draw' || tool === 'erase') ? 'flex' : 'none';
-  document.getElementById('textOptions').style.display = tool === 'text' ? 'flex' : 'none';
-  const canvas = document.getElementById('editCanvas');
-  canvas.style.cursor = tool === 'draw' ? 'crosshair' : tool === 'text' ? 'text' : tool === 'erase' ? 'cell' : 'default';
-}
-
-function setupCanvasEvents(canvas) {
-  canvas.onmousedown = e => {
-    if (currentTool === 'text') {
-      const rect = canvas.getBoundingClientRect();
-      const scaleX = canvas.width / rect.width;
-      const scaleY = canvas.height / rect.height;
-      const x = (e.clientX - rect.left) * scaleX;
-      const y = (e.clientY - rect.top) * scaleY;
-      const text = document.getElementById('textInput').value || 'Text';
-      const size = parseInt(document.getElementById('textSize').value);
-      const color = document.getElementById('textColor').value;
-      canvasCtx.font = `bold ${size}px sans-serif`;
-      canvasCtx.fillStyle = color;
-      canvasCtx.shadowColor = 'rgba(0,0,0,0.5)';
-      canvasCtx.shadowBlur = 4;
-      canvasCtx.fillText(text, x, y);
-      canvasCtx.shadowBlur = 0;
-      return;
-    }
-    if (currentTool !== 'draw' && currentTool !== 'erase') return;
-    isDrawing = true;
-    const rect = canvas.getBoundingClientRect();
-    lastX = (e.clientX - rect.left) * (canvas.width / rect.width);
-    lastY = (e.clientY - rect.top)  * (canvas.height / rect.height);
-  };
-  canvas.onmousemove = e => {
-    if (!isDrawing) return;
-    const rect = canvas.getBoundingClientRect();
-    const x = (e.clientX - rect.left) * (canvas.width / rect.width);
-    const y = (e.clientY - rect.top)  * (canvas.height / rect.height);
-    canvasCtx.beginPath();
-    canvasCtx.moveTo(lastX, lastY);
-    canvasCtx.lineTo(x, y);
-    if (currentTool === 'erase') {
-      canvasCtx.globalCompositeOperation = 'destination-out';
-      canvasCtx.lineWidth = parseInt(document.getElementById('brushSize').value) * 3;
-      canvasCtx.strokeStyle = 'rgba(0,0,0,1)';
-    } else {
-      canvasCtx.globalCompositeOperation = 'source-over';
-      canvasCtx.lineWidth = parseInt(document.getElementById('brushSize').value);
-      const opacity = parseInt(document.getElementById('brushOpacity').value) / 100;
-      const color = document.getElementById('drawColor').value;
-      canvasCtx.strokeStyle = color + Math.round(opacity * 255).toString(16).padStart(2,'0');
-    }
-    canvasCtx.lineCap = 'round';
-    canvasCtx.lineJoin = 'round';
-    canvasCtx.stroke();
-    [lastX, lastY] = [x, y];
-    document.getElementById('brushSizeVal').textContent = document.getElementById('brushSize').value;
-    document.getElementById('brushOpacityVal').textContent = document.getElementById('brushOpacity').value;
-  };
-  canvas.onmouseup = canvas.onmouseleave = () => {
-    isDrawing = false;
-    canvasCtx.globalCompositeOperation = 'source-over';
-  };
-}
 </script>
 </body>
 </html>
