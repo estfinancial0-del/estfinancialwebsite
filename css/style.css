@@ -1241,3 +1241,23 @@ body::after {
   font-size: 1.5rem; line-height: 1.05; font-variant-numeric: tabular-nums;
 }
 .sv-stat span { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: rgba(255,255,255,.55); }
+
+/* ---- SUCCESS STORIES (video testimonial) ---- */
+.success-stories { background: var(--white); }
+.story-video {
+  border-radius: var(--r-xl); overflow: hidden;
+  box-shadow: var(--shadow-xl); border: 1px solid var(--gray-200);
+  background: var(--navy);
+}
+.story-video .video-embed { border-radius: var(--r-xl); }
+.story-quote {
+  margin: var(--sp-6) 0 var(--sp-8); padding-left: var(--sp-5);
+  border-left: 3px solid var(--red);
+  font-family: var(--font-heading); font-style: italic;
+  font-size: 1.15rem; line-height: 1.55; color: var(--navy);
+}
+.story-quote cite {
+  display: block; margin-top: var(--sp-3);
+  font-family: var(--font-body); font-style: normal; font-weight: 600;
+  font-size: 13px; color: var(--gray-600);
+}
