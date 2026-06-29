@@ -71,7 +71,7 @@ const revealObserver = new IntersectionObserver((entries) => {
 }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
 
 const revealSelectors = [
-  '.service-card', '.testimonial-card', '.team-card',
+  '.service-card', '.testimonial-card', '.team-card', '.ss-card',
   '.blog-card', '.video-card', '.case-card', '.value-card',
   '.why-list li', '.contact-detail', '.outcome-item',
   '.section-header', '.about-intro-text', '.about-intro-inner .image-placeholder',
@@ -259,3 +259,106 @@ document.querySelectorAll('.service-card').forEach(card => {
     card.style.setProperty('--my', ((e.clientY - r.top)  / r.height * 100) + '%');
   }, { passive: true });
 });
+
+
+// ---- SUCCESS STORIES GALLERY: filter tabs + lightbox + prev/next ----
+// Vanilla, no libs. No persistent DOM injection — only class/attr/src mutations,
+// and the lightbox iframe src is cleared on close, so the inline editor's
+// DOM serialisation stays clean.
+(function () {
+  const grid = document.getElementById('ssGrid');
+  if (!grid) return;
+  const tabs    = [...document.querySelectorAll('.ss-tab')];
+  const cards   = [...grid.querySelectorAll('.ss-card')];   // <article> elements
+  const opens   = [...grid.querySelectorAll('.ss-open')];   // trigger buttons
+  const countEl = document.querySelector('.ss-count strong');
+  const lb       = document.getElementById('ssLightbox');
+  const frame    = document.getElementById('ssLbFrame');
+  const lbTitle  = document.getElementById('ssLbTitle');
+  const lbQuote  = document.getElementById('ssLbQuote');
+  const player   = lb.querySelector('.ss-lightbox__player');
+  const prevBtn  = document.getElementById('ssLbPrev');
+  const nextBtn  = document.getElementById('ssLbNext');
+  let lastTrigger = null, queue = [], qi = -1;
+
+  // --- Filter (roving-tabindex tablist) ---
+  function applyFilter(f) {
+    let n = 0;
+    cards.forEach(c => { const show = f === 'all' || c.dataset.category === f; c.hidden = !show; if (show) n++; });
+    if (countEl) countEl.textContent = n;
+  }
+  function selectTab(i) {
+    tabs.forEach((t, j) => {
+      const on = i === j;
+      t.classList.toggle('is-active', on);
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+      t.tabIndex = on ? 0 : -1;
+    });
+    applyFilter(tabs[i].dataset.filter);
+  }
+  tabs.forEach((t, i) => {
+    t.addEventListener('click', () => selectTab(i));
+    t.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        e.preventDefault();
+        const nx = (i + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length;
+        selectTab(nx); tabs[nx].focus();
+      }
+    });
+  });
+
+  // --- Cursor spotlight on video cards ---
+  cards.forEach(c => {
+    if (!c.classList.contains('ss-card--video')) return;
+    c.addEventListener('mousemove', e => {
+      const r = c.getBoundingClientRect();
+      c.style.setProperty('--mx', ((e.clientX - r.left) / r.width  * 100) + '%');
+      c.style.setProperty('--my', ((e.clientY - r.top)  / r.height * 100) + '%');
+    }, { passive: true });
+  });
+
+  // --- Lightbox ---
+  const visibleVideoTriggers = () => opens.filter(b => b.dataset.ytid && !b.closest('.ss-card').hidden);
+  function showVideo(btn) {
+    player.hidden = false; lbQuote.hidden = true; prevBtn.hidden = false; nextBtn.hidden = false;
+    lbTitle.textContent = btn.dataset.title || '';
+    frame.src = 'https://www.youtube.com/embed/' + btn.dataset.ytid + '?autoplay=1&rel=0&modestbranding=1';
+  }
+  function showQuote(btn) {
+    player.hidden = true; frame.src = ''; prevBtn.hidden = true; nextBtn.hidden = true; lbQuote.hidden = false;
+    lbTitle.textContent = btn.dataset.client || '';
+    lbQuote.textContent = btn.dataset.quote || '';
+  }
+  function openLb(btn) {
+    lastTrigger = btn;
+    if (btn.dataset.ytid) { queue = visibleVideoTriggers(); qi = queue.indexOf(btn); showVideo(btn); }
+    else { queue = []; qi = -1; showQuote(btn); }
+    lb.classList.add('open'); lb.setAttribute('aria-hidden', 'false'); document.body.classList.add('ss-lock');
+    lb.querySelector('.ss-lightbox__close').focus();
+    document.addEventListener('keydown', onKey);
+  }
+  function closeLb() {
+    lb.classList.remove('open'); lb.setAttribute('aria-hidden', 'true'); document.body.classList.remove('ss-lock');
+    frame.src = '';                       // stop playback + keep serialised DOM clean
+    document.removeEventListener('keydown', onKey);
+    if (lastTrigger) lastTrigger.focus();
+  }
+  function step(d) { if (!queue.length) return; qi = (qi + d + queue.length) % queue.length; showVideo(queue[qi]); }
+  function onKey(e) {
+    if (e.key === 'Escape') return closeLb();
+    if (e.key === 'ArrowRight' && !nextBtn.hidden) return step(1);
+    if (e.key === 'ArrowLeft'  && !prevBtn.hidden) return step(-1);
+    if (e.key === 'Tab') {
+      const f = [...lb.querySelectorAll('button, iframe, [href], [tabindex]:not([tabindex="-1"])')]
+        .filter(el => !el.hidden && el.offsetParent !== null);
+      if (!f.length) return;
+      const first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  }
+  opens.forEach(b => b.addEventListener('click', () => openLb(b)));
+  lb.querySelectorAll('[data-ss-close]').forEach(el => el.addEventListener('click', closeLb));
+  prevBtn.addEventListener('click', () => step(-1));
+  nextBtn.addEventListener('click', () => step(1));
+})();

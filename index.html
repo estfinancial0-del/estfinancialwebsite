@@ -146,26 +146,89 @@
     </div>
   </section>
 
-  <!-- SUCCESS STORIES (video) -->
-  <section class="section success-stories">
-    <div class="container why-inner">
-      <div class="why-text">
+  <!-- SUCCESS STORIES (interactive gallery) -->
+  <section class="section success-stories" id="success-stories" aria-labelledby="ss-h">
+    <div class="container">
+      <div class="section-header reveal">
         <p class="eyebrow">Success Stories</p>
-        <h2>Real Australian families.<br />Real results.</h2>
-        <p>From first homes in the suburbs to investment portfolios across Australia, est helps everyday Australians buy smarter, invest in property with confidence and grow lasting wealth — with one team handling finance, property, tax and legal.</p>
-        <blockquote class="story-quote">
-          "est helped us protect our hard-earned money, understand our options, and move forward with confidence."
-          <cite>Lavina M &amp; Darryl D — est clients</cite>
-        </blockquote>
-        <a href="https://www.youtube.com/@est.financial" target="_blank" rel="noopener" class="btn btn-primary">Watch more stories</a>
+        <h2 id="ss-h">Real Australian families.<br />Real results.</h2>
+        <p class="section-sub">From first homes to investment portfolios and self-managed super — hear it in their own words. Filter by where you are on your journey.</p>
       </div>
-      <div class="why-image">
-        <div class="story-video">
-          <div class="video-embed">
-            <iframe src="https://www.youtube.com/embed/4TF4fgnXY_I" title="est Financial success story — finding the confidence to start investing in Australian property" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-          </div>
-        </div>
+
+      <div class="ss-tabs" role="tablist" aria-label="Filter success stories by life stage">
+        <button class="ss-tab is-active" role="tab" aria-selected="true" tabindex="0" data-filter="all">All</button>
+        <button class="ss-tab" role="tab" aria-selected="false" tabindex="-1" data-filter="first-home">First Home</button>
+        <button class="ss-tab" role="tab" aria-selected="false" tabindex="-1" data-filter="investing">Investing</button>
+        <button class="ss-tab" role="tab" aria-selected="false" tabindex="-1" data-filter="property">Property</button>
+        <button class="ss-tab" role="tab" aria-selected="false" tabindex="-1" data-filter="smsf">SMSF</button>
+        <span class="ss-count" aria-live="polite"><strong>10</strong> stories</span>
       </div>
+
+      <div class="ss-grid" id="ssGrid">
+
+        <article class="ss-card ss-card--video" data-category="investing">
+          <span class="ss-thumb"><img src="https://i.ytimg.com/vi/4TF4fgnXY_I/hqdefault.jpg" alt="" loading="lazy" width="480" height="360" /><span class="ss-scrim" aria-hidden="true"></span><span class="ss-chip">Investing</span><span class="ss-play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span></span>
+          <span class="ss-info"><h3>Lavina &amp; Darryl</h3><p>How they found the confidence to start investing</p></span>
+          <button type="button" class="ss-open" data-ytid="4TF4fgnXY_I" data-title="Lavina &amp; Darryl — finding the confidence to start investing" aria-label="Play video: Lavina and Darryl on finding the confidence to start investing"></button>
+        </article>
+
+        <article class="ss-card ss-card--video" data-category="smsf">
+          <span class="ss-thumb"><img src="https://i.ytimg.com/vi/8eQR7JaW7QI/hqdefault.jpg" alt="" loading="lazy" width="480" height="360" /><span class="ss-scrim" aria-hidden="true"></span><span class="ss-chip">SMSF</span><span class="ss-play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span></span>
+          <span class="ss-info"><h3>Ancy Matthews</h3><p>Why she came to est after a failed SMSF</p></span>
+          <button type="button" class="ss-open" data-ytid="8eQR7JaW7QI" data-title="Ancy Matthews — coming to est after a failed SMSF" aria-label="Play video: Ancy Matthews on coming to est after a failed self-managed super fund"></button>
+        </article>
+
+        <article class="ss-card ss-card--video" data-category="property">
+          <span class="ss-thumb"><img src="https://i.ytimg.com/vi/LQGJBDUa8SQ/hqdefault.jpg" alt="" loading="lazy" width="480" height="360" /><span class="ss-scrim" aria-hidden="true"></span><span class="ss-chip">Property</span><span class="ss-play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span></span>
+          <span class="ss-info"><h3>An est family</h3><p>How they made $250K through smart property investing</p></span>
+          <button type="button" class="ss-open" data-ytid="LQGJBDUa8SQ" data-title="How one family made $250K through smart property investing" aria-label="Play video: how one est family made 250 thousand dollars through smart property investing"></button>
+        </article>
+
+        <article class="ss-card ss-card--video" data-category="investing">
+          <span class="ss-thumb"><img src="https://i.ytimg.com/vi/08IBzCix_VM/hqdefault.jpg" alt="" loading="lazy" width="480" height="360" /><span class="ss-scrim" aria-hidden="true"></span><span class="ss-chip">Investing</span><span class="ss-play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span></span>
+          <span class="ss-info"><h3>An est client</h3><p>The simple strategy that changed our family's future</p></span>
+          <button type="button" class="ss-open" data-ytid="08IBzCix_VM" data-title="The simple investment strategy that changed our family's future" aria-label="Play video: the simple investment strategy that changed our family's future"></button>
+        </article>
+
+        <article class="ss-card ss-card--video" data-category="property">
+          <span class="ss-thumb"><img src="https://i.ytimg.com/vi/n_yh7IxnP1Q/hqdefault.jpg" alt="" loading="lazy" width="480" height="360" /><span class="ss-scrim" aria-hidden="true"></span><span class="ss-chip">Property</span><span class="ss-play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span></span>
+          <span class="ss-info"><h3>An est client</h3><p>Smart property investing that made retirement dreams come true</p></span>
+          <button type="button" class="ss-open" data-ytid="n_yh7IxnP1Q" data-title="Smart property investment that made retirement dreams come true" aria-label="Play video: smart property investment that made retirement dreams come true"></button>
+        </article>
+
+        <article class="ss-card ss-card--video" data-category="property">
+          <span class="ss-thumb"><img src="https://i.ytimg.com/vi/1bl27JZWxas/hqdefault.jpg" alt="" loading="lazy" width="480" height="360" /><span class="ss-scrim" aria-hidden="true"></span><span class="ss-chip">Property</span><span class="ss-play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span></span>
+          <span class="ss-info"><h3>An est client</h3><p>A Queensland apartment investment that doubled in value</p></span>
+          <button type="button" class="ss-open" data-ytid="1bl27JZWxas" data-title="A Queensland apartment investment that doubled in value" aria-label="Play video: a Queensland apartment investment that doubled in value"></button>
+        </article>
+
+        <article class="ss-card ss-card--video" data-category="first-home">
+          <span class="ss-thumb"><img src="https://i.ytimg.com/vi/bRzev5O50o0/hqdefault.jpg" alt="" loading="lazy" width="480" height="360" /><span class="ss-scrim" aria-hidden="true"></span><span class="ss-chip">First Home</span><span class="ss-play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span></span>
+          <span class="ss-info"><h3>An est client</h3><p>Bought our dream home and still had money left over</p></span>
+          <button type="button" class="ss-open" data-ytid="bRzev5O50o0" data-title="Bought our dream home and still had money left over" aria-label="Play video: bought our dream home and still had money left over"></button>
+        </article>
+
+        <article class="ss-card ss-card--quote" data-category="first-home">
+          <span class="ss-quote-bg" aria-hidden="true"><img src="https://picsum.photos/seed/est-home-keys/600/400" alt="" loading="lazy" width="600" height="400" /></span>
+          <span class="ss-quote-body"><span class="ss-chip ss-chip--quote">Home Loan</span><blockquote class="story-quote">Saved 12 years of home loan repayments and on track to retire a decade sooner.<cite>The Jensen Family — est clients</cite></blockquote></span>
+          <button type="button" class="ss-open" data-client="The Jensen Family — est clients" data-quote="Saved 12 years of home loan repayments and on track to retire a decade sooner." aria-label="Read testimonial from The Jensen Family"></button>
+        </article>
+
+        <article class="ss-card ss-card--quote" data-category="property">
+          <span class="ss-quote-bg" aria-hidden="true"><img src="https://picsum.photos/seed/est-australian-home/600/400" alt="" loading="lazy" width="600" height="400" /></span>
+          <span class="ss-quote-body"><span class="ss-chip ss-chip--quote">Property</span><blockquote class="story-quote">From uncertainty to equity — I bought two properties and secured my future.<cite>Mark — est client</cite></blockquote></span>
+          <button type="button" class="ss-open" data-client="Mark — est client" data-quote="From uncertainty to equity — I bought two properties and secured my future." aria-label="Read testimonial from Mark"></button>
+        </article>
+
+        <article class="ss-card ss-card--quote" data-category="investing">
+          <span class="ss-quote-bg" aria-hidden="true"><img src="https://picsum.photos/seed/est-wealth-path/600/400" alt="" loading="lazy" width="600" height="400" /></span>
+          <span class="ss-quote-body"><span class="ss-chip ss-chip--quote">Investing</span><blockquote class="story-quote">My path to building real wealth, after years focused on career and travel.<cite>Julie Ott — est client</cite></blockquote></span>
+          <button type="button" class="ss-open" data-client="Julie Ott — est client" data-quote="My path to building real wealth, after years focused on career and travel." aria-label="Read testimonial from Julie Ott"></button>
+        </article>
+
+      </div><!-- /.ss-grid -->
+
+      <a href="https://www.youtube.com/@est.financial" target="_blank" rel="noopener" class="btn btn-primary ss-cta">Watch more stories on YouTube</a>
     </div>
   </section>
 
@@ -357,6 +420,21 @@
       </div>
     </div>
   </footer>
+
+  <!-- SUCCESS STORIES LIGHTBOX (static; iframe has no src at rest) -->
+  <div class="ss-lightbox" id="ssLightbox" aria-hidden="true">
+    <div class="ss-lightbox__backdrop" data-ss-close></div>
+    <div class="ss-lightbox__dialog" role="dialog" aria-modal="true" aria-labelledby="ssLbTitle">
+      <button type="button" class="ss-lightbox__close" data-ss-close aria-label="Close">&times;</button>
+      <h3 class="ss-lightbox__title" id="ssLbTitle"></h3>
+      <div class="ss-lightbox__player video-embed">
+        <iframe id="ssLbFrame" title="est Financial success story video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+      </div>
+      <blockquote class="ss-lightbox__quote story-quote" id="ssLbQuote" hidden></blockquote>
+      <button type="button" class="ss-lightbox__nav ss-lightbox__prev" id="ssLbPrev" aria-label="Previous story">&#8249;</button>
+      <button type="button" class="ss-lightbox__nav ss-lightbox__next" id="ssLbNext" aria-label="Next story">&#8250;</button>
+    </div>
+  </div>
 
   <script src="js/main.js"></script>
   <script src="admin/editor.js"></script>
