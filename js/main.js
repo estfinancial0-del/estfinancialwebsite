@@ -248,3 +248,14 @@ document.querySelectorAll('.form-group input, .form-group textarea, .form-group 
     input.closest('.form-group')?.classList.remove('focused');
   });
 });
+
+
+// ---- SERVICE CARD CURSOR SPOTLIGHT ----
+// Sets --mx/--my so the CSS radial glow follows the cursor. No DOM injection.
+document.querySelectorAll('.service-card').forEach(card => {
+  card.addEventListener('mousemove', e => {
+    const r = card.getBoundingClientRect();
+    card.style.setProperty('--mx', ((e.clientX - r.left) / r.width  * 100) + '%');
+    card.style.setProperty('--my', ((e.clientY - r.top)  / r.height * 100) + '%');
+  }, { passive: true });
+});
