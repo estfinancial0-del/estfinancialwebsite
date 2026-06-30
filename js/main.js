@@ -1,5 +1,5 @@
 /* ============================================================
-   EST FINANCIAL — PREMIUM INTERACTIONS
+   EST FINANCIAL - PREMIUM INTERACTIONS
    ============================================================ */
 
 // ---- SCROLL PROGRESS BAR ----
@@ -183,7 +183,7 @@ window.addEventListener('scroll', () => {
       const currentY = window.scrollY;
       if (currentY > 200) {
         if (currentY > lastScrollY + 10) {
-          // Scrolling down fast — keep visible (don't hide on finance site)
+          // Scrolling down fast - keep visible (don't hide on finance site)
         }
       }
       lastScrollY = currentY;
@@ -262,7 +262,7 @@ document.querySelectorAll('.service-card').forEach(card => {
 
 
 // ---- SUCCESS STORIES GALLERY: filter tabs + lightbox + prev/next ----
-// Vanilla, no libs. No persistent DOM injection — only class/attr/src mutations,
+// Vanilla, no libs. No persistent DOM injection - only class/attr/src mutations,
 // and the lightbox iframe src is cleared on close, so the inline editor's
 // DOM serialisation stays clean.
 (function () {
